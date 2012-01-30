@@ -100,8 +100,8 @@ void Assembler::Xor(int dst, int src) {
 
 
 void Assembler::Call(const void* addr) {
-  if (Offset(addr) >= 0x7fffffff ||
-      Offset(addr) <= -0x7fffffff) {
+  if (Offset(addr) <= 0x7fffffff &&
+      Offset(addr) >= -0x7fffffff) {
     // Short
 
     emit(0xe8); // Call
