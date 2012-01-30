@@ -70,7 +70,7 @@ void Codegen::GenerateString(AstNode* node) {
 
   MovFromContext(rdi, -24); // out
   MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // push value
-  Call(*reinterpret_cast<void**>(&method));
+  CallFar(*reinterpret_cast<void**>(&method));
 
   AddImmToContext(-8, node->length);
 }
@@ -109,7 +109,7 @@ void Codegen::GenerateProp(AstNode* node) {
 
     MovFromContext(rdi, -24); // out
     Mov(rsi, rax); // result of get prop
-    Call(*reinterpret_cast<void**>(&method)); // push
+    CallFar(*reinterpret_cast<void**>(&method)); // push
   }
 
   // Restore it to calculate strlen

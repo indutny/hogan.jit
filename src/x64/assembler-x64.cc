@@ -106,6 +106,13 @@ void Assembler::Call(const void* addr) {
 }
 
 
+void Assembler::CallFar(const void* addr) {
+  MovImm(rbx, reinterpret_cast<const uint64_t>(addr));
+  emit(0xff); // Call
+  emit(0xC0 | 2 << 3 | rbx);
+}
+
+
 void Assembler::Leave() {
   emit(0xc9);
 }
