@@ -166,7 +166,7 @@ void Codegen::GenerateIf(AstNode* node) {
   Label Start, Else, EndIf;
 
   // Check if object has that prop
-  Cmp(rax, NULL);
+  Cmp(rax, 0);
   Je(&Else);
 
   // Push property (needed to restore after iteration loop)
