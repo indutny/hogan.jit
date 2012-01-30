@@ -1,6 +1,12 @@
 CPPFLAGS += -Wall -Wextra -Wno-unused-parameter
 CPPFLAGS += -Iinclude
-CPPFLAGS += -g
+
+ifeq ($(MODE),release)
+	CPPFLAGS += -O3
+else
+	CPPFLAGS += -g
+endif
+
 
 all: hogan.a
 
@@ -18,8 +24,10 @@ src/%.o: src/%.cc
 
 TESTS += test/test-api
 
-test: hogan.a $(TESTS)
+test: $(TESTS)
 	@test/test-api
 
-test/%: test/%.cc
+test/%: test/%.cc hogan.a
 	$(CXX) $(CPPFLAGS) hogan.a $< -o $@
+
+.PHONY: all test
