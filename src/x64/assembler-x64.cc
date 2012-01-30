@@ -10,6 +10,12 @@ void Assembler::Push(int reg) {
 }
 
 
+void Assembler::PushImm(uint32_t imm) {
+  emit(0x68);
+  Immediate(imm);
+}
+
+
 void Assembler::Pop(int reg) {
   emit(0x58 | reg);
 }
@@ -17,7 +23,7 @@ void Assembler::Pop(int reg) {
 
 void Assembler::Mov(int dst, int src) {
   emit(0x48); // REX prefix
-  emit(0x8B); // mov
+  emit(0x8b); // mov
   emit(0xC0 | dst << 3 | src);
 }
 
@@ -32,7 +38,7 @@ void Assembler::MovToContext(uint8_t offset, int src) {
 
 void Assembler::MovFromContext(int dst, uint8_t offset) {
   emit(0x48);
-  emit(0x8B); // mov dst, [ebp+offset]
+  emit(0x8b); // mov dst, [ebp+offset]
   emit(0x45 | dst << 3); // modrm
   Immediate(offset);
 }
@@ -40,7 +46,7 @@ void Assembler::MovFromContext(int dst, uint8_t offset) {
 
 void Assembler::MovImm(int dst, uint64_t imm) {
   emit(0x48); // REX prefix
-  emit(0xB8 | dst); // mov
+  emit(0xb8 | dst); // mov
 
   Immediate(imm);
 }
@@ -76,6 +82,13 @@ void Assembler::SubImm(int dst, uint8_t imm) {
   emit(0x83);
   emit(0xC0 | 0x05 << 3 | dst);
   Immediate(imm);
+}
+
+
+void Assembler::Inc(int dst) {
+  emit(0x48); // REX prefix
+  emit(0xff); // xor
+  emit(0xC0 | dst << 3);
 }
 
 

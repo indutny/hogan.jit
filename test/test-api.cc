@@ -21,20 +21,28 @@ class Object : public ObjectTemplate {
     }
   }
 
+  Object* At(const int index) {
+    if (index < 3) {
+      return this;
+    } else {
+      return NULL;
+    }
+  }
+
   bool IsArray() {
-    return false;
+    return true;
   }
 };
 
 TEST_START("API test")
   Template* t = hogan.Compile("some {{adjective}} template. "
-                               "{{#prop}}yeah{{^prop}}oh noes{{/prop}}");
+                               "{{#prop}}yeah {{^prop}}oh noes{{/prop}}");
 
   Object data;
 
   char* out = t->Render(&data);
   assert(out != NULL);
-  assert(strcmp("some neat template. yeah", out) == 0);
+  assert(strcmp("some neat template. yeah yeah yeah ", out) == 0);
 
   delete t;
   delete out;

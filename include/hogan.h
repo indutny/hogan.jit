@@ -32,6 +32,7 @@ class ObjectTemplate {
  public:
   virtual const char* GetString(const char* key) = 0;
   virtual ObjectTemplate* GetObject(const char* key) = 0;
+  virtual ObjectTemplate* At(const int index) = 0;
   virtual bool IsArray() = 0;
 };
 

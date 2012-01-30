@@ -61,6 +61,7 @@ class Assembler {
   }
 
   void Push(int reg);
+  void PushImm(uint32_t imm);
   void Pop(int reg);
   void Mov(int dst, int src);
   void MovToContext(uint8_t offset, int src);
@@ -70,6 +71,7 @@ class Assembler {
   void AddImmToContext(int offset, uint32_t imm);
   void AddToContext(int offset, int src);
   void SubImm(int dst, uint8_t imm);
+  void Inc(int dst);
   void Xor(int dst, int src);
   void Call(const void* addr);
   void Leave();
