@@ -27,25 +27,23 @@ class Object : public ObjectTemplate {
 };
 
 TEST_START("API test")
-  Template* t = hogan->Compile("some {{adjective}} template. "
+  Template* t = hogan.Compile("some {{adjective}} template. "
                                "{{#prop}}yeah{{^prop}}oh noes{{/prop}}");
 
   Object data;
 
   char* out = t->Render(&data);
   assert(out != NULL);
-  fprintf(stdout, "%s\n", out);
   assert(strcmp("some neat template. yeah", out) == 0);
 
   delete t;
   delete out;
 
-  t = hogan->Compile("some {{adjective}} template. "
+  t = hogan.Compile("some {{adjective}} template. "
                      "{{#nprop}}yeah{{^nprop}}oh noes{{/nprop}}");
 
   out = t->Render(&data);
   assert(out != NULL);
-  fprintf(stdout, "%s\n", out);
   assert(strcmp("some neat template. oh noes", out) == 0);
 
   delete t;

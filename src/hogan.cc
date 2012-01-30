@@ -18,10 +18,10 @@ Template* Hogan::Compile(const char* source_) {
   char* source = new char[len];
   memcpy(source, source_, len);
 
-  Parser* parser = new Parser(source, len);
-  parser->Parse();
+  Parser parser(source, len);
+  parser.Parse();
 
-  return Compiler::Compile(parser->Result(), source);
+  return Compiler::Compile(parser.Result(), source);
 }
 
 } // namespace hogan

@@ -39,6 +39,9 @@ void Parser::Parse() {
     delete tok;
     tok = Consume();
   }
+
+  // Delete kEnd token too
+  delete tok;
 }
 
 } // namespace hogan

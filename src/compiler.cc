@@ -29,8 +29,8 @@ Template* Compiler::Compile(AstNode* ast, const char* source) {
 
 
 char* Template::Render(ObjectTemplate* obj) {
-  Queue<char*>* out = new Queue<char*>();
-  size_t length = code->AsFunction()(obj, out);
+  Queue<char*> out;
+  size_t length = code->AsFunction()(obj, &out);
   if (length == 0) return NULL;
 
   char* result = new char[length + 1];
@@ -38,7 +38,7 @@ char* Template::Render(ObjectTemplate* obj) {
 
   char* chunk;
   off_t offset = 0;
-  while ((chunk = out->Shift()) != NULL) {
+  while ((chunk = out.Shift()) != NULL) {
     size_t size = strlen(chunk);
     memcpy(result + offset, chunk, size);
     offset += size;
