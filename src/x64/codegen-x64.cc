@@ -98,7 +98,7 @@ void Codegen::GenerateProp(AstNode* node) {
 
     MovFromContext(rdi, -16); // obj
     MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // get prop value
-    Call(*reinterpret_cast<void**>(&method));
+    CallFar(*reinterpret_cast<void**>(&method));
   }
 
   // Store pointer to value
@@ -119,7 +119,7 @@ void Codegen::GenerateProp(AstNode* node) {
     StrLenType method = &strlen_wrap;
 
     Mov(rdi, rax); // str
-    Call(*reinterpret_cast<void**>(&method)); // strlen
+    CallFar(*reinterpret_cast<void**>(&method)); // strlen
 
     AddToContext(-8, rax);
   }
@@ -158,7 +158,7 @@ void Codegen::GenerateIf(AstNode* node) {
     data->Push(value);
 
     MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // get prop value
-    Call(*reinterpret_cast<void**>(&method));
+    CallFar(*reinterpret_cast<void**>(&method));
 
     MovToContext(-16, rax); // Replace context var
   }
@@ -177,7 +177,7 @@ void Codegen::GenerateIf(AstNode* node) {
     IsArrayType method = &IsArray;
 
     Mov(rdi, rax);
-    Call(*reinterpret_cast<void**>(&method));
+    CallFar(*reinterpret_cast<void**>(&method));
   }
 
   PushImm(0);
@@ -203,7 +203,7 @@ void Codegen::GenerateIf(AstNode* node) {
     Push(rdi);
     Push(rax);
 
-    Call(*reinterpret_cast<void**>(&method));
+    CallFar(*reinterpret_cast<void**>(&method));
 
     // If At() returns NULL - we reached end of array
     Cmp(rax, 0);
