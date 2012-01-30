@@ -29,6 +29,6 @@ test: $(TESTS)
 	@test/test-api
 
 test/%: test/%.cc hogan.a
-	$(CXX) $(CPPFLAGS) hogan.a $< -o $@
+	$(CXX) $(CPPFLAGS) $< -o $@ hogan.a
 
 .PHONY: all test
