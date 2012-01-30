@@ -74,7 +74,6 @@ class Assembler {
   void Inc(int dst);
   void Xor(int dst, int src);
   void Call(const void* addr);
-  void CallFar(const void* addr);
   void Leave();
   void Return();
   void Cmp(int src, uint32_t imm);

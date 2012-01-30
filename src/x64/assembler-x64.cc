@@ -100,16 +100,19 @@ void Assembler::Xor(int dst, int src) {
 
 
 void Assembler::Call(const void* addr) {
-  emit(0xe8); // Call
+  if (Offset(addr) >= 0x7fffffff |
+      Offset(addr) <= -0x7fffffff) {
+    // Short
 
-  Immediate(static_cast<const uint32_t>(Offset(addr) - 4));
-}
+    emit(0xe8); // Call
+    Immediate(static_cast<const uint32_t>(Offset(addr) - 4));
+  } else {
+    // Far
 
-
-void Assembler::CallFar(const void* addr) {
-  MovImm(rbx, reinterpret_cast<const uint64_t>(addr));
-  emit(0xff); // Call
-  emit(0xC0 | 2 << 3 | rbx);
+    MovImm(rbx, reinterpret_cast<const uint64_t>(addr));
+    emit(0xff); // Call
+    emit(0xC0 | 2 << 3 | rbx);
+  }
 }
 
 
