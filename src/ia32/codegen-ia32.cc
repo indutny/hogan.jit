@@ -1,5 +1,5 @@
 #include "codegen.h"
-#include "assembler-x64.h"
+#include "assembler-ia32.h"
 #include "assembler.h"
 #include "parser.h" // AstNode
 #include "queue.h" // Queue
@@ -12,23 +12,27 @@
 namespace hogan {
 
 void Codegen::GeneratePrologue() {
-  Push(rbp);
-  Mov(rbp, rsp);
+  Push(ebp);
+  Mov(ebp, esp);
 
   // Reserve space for 3 pointers
-  SubImm(rsp, 24);
+  // Note: 4 is alignment bytes
+  SubImm(esp, 12 + 4);
 
-  MovToContext(-24, rsi); // store `out`
-  MovToContext(-16, rdi); // store `obj`
-  Xor(rax, rax); // nullify return value
-  MovToContext(-8, rax);
+  MovFromContext(eax, 8); // get `obj`
+  MovToContext(-8, eax); // store `obj`
+  MovFromContext(eax, 12); // get `out`
+  MovToContext(-12, eax); // store `out`
+
+  Xor(eax, eax); // nullify return value
+  MovToContext(-4, eax);
 }
 
 
 void Codegen::GenerateEpilogue() {
-  MovFromContext(rax, -8);
-  Mov(rsp, rbp);
-  Pop(rbp);
+  MovFromContext(eax, -4);
+  Mov(esp, ebp);
+  Pop(ebp);
   Return(0);
 }
 
@@ -66,11 +70,13 @@ void Codegen::GenerateString(AstNode* node) {
   value[node->length] = 0;
   data->Push(value);
 
-  MovFromContext(rdi, -24); // out
-  MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // push value
+  MovFromContext(eax, -12);
+  PushImm(reinterpret_cast<const uint64_t>(value)); // str to push
+  Push(eax); // out
   Call(*reinterpret_cast<void**>(&method));
+  AddImm(esp, 8);
 
-  AddImmToContext(-8, node->length);
+  AddImmToContext(-4, node->length);
 }
 
 
@@ -94,33 +100,35 @@ void Codegen::GenerateProp(AstNode* node) {
     value[node->length] = 0;
     data->Push(value);
 
-    MovFromContext(rdi, -16); // obj
-    MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // get prop value
+    MovFromContext(eax, -8);
+    PushImm(reinterpret_cast<const uint64_t>(value)); // prop value
+    Push(eax); // obj
     Call(*reinterpret_cast<void**>(&method));
+    AddImm(esp, 8);
   }
 
   // Store pointer to value
-  Push(rax);
+  MovFromContext(ebx, -12);
+  Push(eax); // value
+  Push(ebx); // out
 
   {
     Queue<char*>::PushType method = &Queue<char*>::Push;
 
-    MovFromContext(rdi, -24); // out
-    Mov(rsi, rax); // result of get prop
     Call(*reinterpret_cast<void**>(&method)); // push
   }
 
-  // Restore it to calculate strlen
-  Pop(rax);
+  Pop(ebx);
 
   {
     StrLenType method = &strlen_wrap;
 
-    Mov(rdi, rax); // str
     Call(*reinterpret_cast<void**>(&method)); // strlen
 
-    AddToContext(-8, rax);
+    AddToContext(-4, eax);
   }
+
+  Pop(eax);
 }
 
 
@@ -144,8 +152,8 @@ void Codegen::GenerateIf(AstNode* node) {
   AstNode* main_block = node->Shift();
   AstNode* else_block = node->Shift();
 
-  MovFromContext(rdi, -16); // save obj
-  Push(rdi);
+  MovFromContext(eax, -8); // save obj
+  Push(eax);
 
   {
     GetPropType method = &GetProp;
@@ -155,33 +163,35 @@ void Codegen::GenerateIf(AstNode* node) {
     value[node->length] = 0;
     data->Push(value);
 
-    MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // get prop value
+    PushImm(reinterpret_cast<const uint64_t>(value)); // prop value
+    Push(eax); // obj
     Call(*reinterpret_cast<void**>(&method));
+    AddImm(esp, 8);
 
-    MovToContext(-16, rax); // Replace context var
+    MovToContext(-8, eax); // Replace context var
   }
 
   Label Start, Else, EndIf;
 
   // Check if object has that prop
-  Cmp(rax, 0);
+  Cmp(eax, 0);
   Je(&Else);
 
   // Push property (needed to restore after iteration loop)
-  Push(rax);
+  Push(eax);
 
   // Check if we need to iterate props
   {
     IsArrayType method = &IsArray;
 
-    Mov(rdi, rax);
     Call(*reinterpret_cast<void**>(&method));
   }
 
+  // index = 0
   PushImm(0);
 
   // If not array - skip to if's body
-  Cmp(rax, 0);
+  Cmp(eax, 0);
   Je(&Start);
 
   // Start of loop
@@ -192,38 +202,41 @@ void Codegen::GenerateIf(AstNode* node) {
   {
     GetAtType method = &GetAt;
 
-    Pop(rax);
-    Pop(rdi);
+    Pop(eax);
+    Pop(edi);
 
-    Mov(rsi, rax);
-    Inc(rax);
+    MovToContext(esi, eax);
+    Inc(eax);
 
-    Push(rdi);
-    Push(rax);
+    Push(edi);
+    Push(eax);
 
+    Push(esi); // index
+    Push(edi); // obj
     Call(*reinterpret_cast<void**>(&method));
+    AddImm(esp, 8);
 
     // If At() returns NULL - we reached end of array
-    Cmp(rax, 0);
+    Cmp(eax, 0);
     Je(&EndIterate);
 
     // Replace context var
-    MovToContext(-16, rax);
+    MovToContext(-8, eax);
   }
 
   Bind(&Start);
 
   GenerateBlock(main_block);
 
-  Pop(rax);
-  Pop(rdi);
+  Pop(eax);
+  Pop(edi);
 
-  Cmp(rax, 0);
+  Cmp(eax, 0);
   Je(&EndIf);
 
   // Store parent and loop index
-  Push(rdi);
-  Push(rax);
+  Push(edi);
+  Push(eax);
 
   // And continue iterating
   Jmp(&Iterate);
@@ -235,13 +248,13 @@ void Codegen::GenerateIf(AstNode* node) {
 
   Bind(&EndIterate);
 
-  Pop(rax);
-  Pop(rdi);
+  Pop(eax);
+  Pop(edi);
 
   Bind(&EndIf);
 
-  Pop(rdi);
-  MovToContext(-16, rdi); // restore obj
+  Pop(eax);
+  MovToContext(-8, eax); // restore obj
 }
 
 } // namespace hogan

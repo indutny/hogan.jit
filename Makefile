@@ -12,9 +12,16 @@ all: hogan.a
 
 OBJS += src/hogan.o
 OBJS += src/parser.o
-OBJS += src/x64/assembler-x64.o
-OBJS += src/x64/codegen-x64.o
 OBJS += src/compiler.o
+
+ifeq ($(ARCH),i386)
+	CPPFLAGS += -arch i386
+	OBJS += src/ia32/assembler-ia32.o
+	OBJS += src/ia32/codegen-ia32.o
+else
+	OBJS += src/x64/assembler-x64.o
+	OBJS += src/x64/codegen-x64.o
+endif
 
 hogan.a: $(OBJS)
 	$(AR) rcs hogan.a $(OBJS)
