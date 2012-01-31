@@ -85,9 +85,6 @@ static const char* GetStrProp(ObjectTemplate* obj, const char* prop) {
 }
 
 typedef size_t (*StrLenType)(const char*);
-static size_t strlen_wrap(const char* str) {
-  return strlen(str);
-}
 
 
 void Codegen::GenerateProp(AstNode* node) {
@@ -127,7 +124,7 @@ void Codegen::GenerateProp(AstNode* node) {
   Pop(rax);
 
   {
-    StrLenType method = &strlen_wrap;
+    StrLenType method = &strlen;
 
     Mov(rdi, rax); // str
     Call(*reinterpret_cast<void**>(&method)); // strlen

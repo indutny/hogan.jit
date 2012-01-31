@@ -21,7 +21,7 @@ TEST_START("bench basic")
 
   t = hogan.Compile("some {{adjective}} template.");
 
-  const int num = 50000;
+  const int num = 5000000;
 
   BENCH_START(basic, num)
   for (int i = 0; i < num; i++) {

@@ -26,7 +26,6 @@ class Queue {
   ~Queue() {
     T value;
     while ((value = Shift()) != NULL) {
-      delete value;
     }
   }
 
