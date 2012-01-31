@@ -53,6 +53,8 @@ void Assembler::MovImm(int dst, uint64_t imm) {
 
 
 void Assembler::AddImm(int dst, uint8_t imm) {
+  if (imm == 0) return;
+
   emit(0x48); // REX prefix
   emit(0x83);
   emit(0xc0 | dst);
@@ -61,6 +63,8 @@ void Assembler::AddImm(int dst, uint8_t imm) {
 
 
 void Assembler::AddImmToContext(int offset, uint32_t imm) {
+  if (imm == 0) return;
+
   emit(0x48); // REX prefix
   emit(0x81);
   emit(0x45); // modrm
@@ -78,6 +82,8 @@ void Assembler::AddToContext(int offset, int src) {
 
 
 void Assembler::SubImm(int dst, uint8_t imm) {
+  if (imm == 0) return;
+
   emit(0x48); // REX prefix
   emit(0x83);
   emit(0xc0 | 0x05 << 3 | dst);
@@ -96,6 +102,16 @@ void Assembler::Xor(int dst, int src) {
   emit(0x48); // REX prefix
   emit(0x33); // xor
   emit(0xc0 | dst << 3 | src);
+}
+
+
+int Assembler::PreCall(int offset, int args) {
+  int delta = 16 - offset % 16;
+
+  if (delta == 16) return 0;
+  SubImm(rsp, delta);
+
+  return delta;
 }
 
 

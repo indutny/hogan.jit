@@ -16,7 +16,8 @@ void Codegen::GeneratePrologue() {
   Mov(rbp, rsp);
 
   // Reserve space for 3 pointers
-  SubImm(rsp, 24);
+  // and align stack
+  SubImm(rsp, 24 + 8);
 
   MovToContext(-24, rsi); // store `out`
   MovToContext(-16, rdi); // store `obj`
@@ -66,9 +67,13 @@ void Codegen::GenerateString(AstNode* node) {
   value[node->length] = 0;
   data->Push(value);
 
+  int delta = PreCall(0, 2);
+
   MovFromContext(rdi, -24); // out
   MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // push value
   Call(*reinterpret_cast<void**>(&method));
+
+  AddImm(rsp, delta);
 
   AddImmToContext(-8, node->length);
 }
@@ -94,9 +99,13 @@ void Codegen::GenerateProp(AstNode* node) {
     value[node->length] = 0;
     data->Push(value);
 
+    int delta = PreCall(0, 2);
+
     MovFromContext(rdi, -16); // obj
     MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // get prop value
     Call(*reinterpret_cast<void**>(&method));
+
+    AddImm(rsp, delta);
   }
 
   // Store pointer to value
@@ -105,9 +114,13 @@ void Codegen::GenerateProp(AstNode* node) {
   {
     Queue<char*>::PushType method = &Queue<char*>::Push;
 
+    int delta = PreCall(8, 2);
+
     MovFromContext(rdi, -24); // out
     Mov(rsi, rax); // result of get prop
     Call(*reinterpret_cast<void**>(&method)); // push
+
+    AddImm(rsp, delta);
   }
 
   // Restore it to calculate strlen
@@ -155,8 +168,12 @@ void Codegen::GenerateIf(AstNode* node) {
     value[node->length] = 0;
     data->Push(value);
 
+    int delta = PreCall(8, 2);
+
     MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // get prop value
     Call(*reinterpret_cast<void**>(&method));
+
+    AddImm(rsp, delta);
 
     MovToContext(-16, rax); // Replace context var
   }
@@ -174,8 +191,12 @@ void Codegen::GenerateIf(AstNode* node) {
   {
     IsArrayType method = &IsArray;
 
+    int delta = PreCall(16, 1);
+
     Mov(rdi, rax);
     Call(*reinterpret_cast<void**>(&method));
+
+    AddImm(rsp, delta);
   }
 
   PushImm(0);
@@ -201,7 +222,11 @@ void Codegen::GenerateIf(AstNode* node) {
     Push(rdi);
     Push(rax);
 
+    int delta = PreCall(24, 2);
+
     Call(*reinterpret_cast<void**>(&method));
+
+    AddImm(rsp, delta);
 
     // If At() returns NULL - we reached end of array
     Cmp(rax, 0);
@@ -213,7 +238,11 @@ void Codegen::GenerateIf(AstNode* node) {
 
   Bind(&Start);
 
+  int delta = PreCall(24, 0);
+
   GenerateBlock(main_block);
+
+  AddImm(rsp, delta);
 
   Pop(rax);
   Pop(rdi);
