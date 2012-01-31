@@ -2,3 +2,4 @@
 *.o
 *.dSYM
 test/test-api
+test/bench-basic
