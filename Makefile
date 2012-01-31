@@ -1,5 +1,6 @@
 CPPFLAGS += -Wall -Wextra -Wno-unused-parameter
 CPPFLAGS += -fPIC -Iinclude
+CPPFLAGS += -fno-strict-aliasing
 CPPFLAGS += -g
 
 ifeq ($(MODE),release)
