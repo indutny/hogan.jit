@@ -9,9 +9,7 @@ ifeq ($(MODE),release)
 endif
 
 ifeq ($(ARCH),)
-	ifeq ($(shell sh -c 'uname -m 2>/dev/null'),i386)
-		ARCH = i386
-	endif
+	ARCH = $(shell sh -c 'uname -m | sed -e "s/i.86/i386/;s/x86_64/x64/;s/amd64/x64/"')
 endif
 
 all: hogan.a
