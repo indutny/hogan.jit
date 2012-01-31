@@ -21,12 +21,14 @@ TEST_START("bench basic")
 
   t = hogan.Compile("some {{adjective}} template.");
 
-  BENCH_START(basic, 5000000)
-  for (int i = 0; i < 5000000; i++) {
+  const int num = 50000;
+
+  BENCH_START(basic, num)
+  for (int i = 0; i < num; i++) {
     out = t->Render(&data);
     delete out;
   }
-  BENCH_END(basic, 5000000)
+  BENCH_END(basic, num)
 
   delete t;
 
