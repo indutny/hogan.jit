@@ -38,6 +38,7 @@ src/%.o: src/%.cc
 	$(CXX) $(CPPFLAGS) -Isrc -c $< -o $@
 
 TESTS += test/test-api
+TESTS += test/bench-basic
 
 test: $(TESTS)
 	@test/test-api
