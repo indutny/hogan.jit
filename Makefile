@@ -7,6 +7,12 @@ ifeq ($(MODE),release)
 	CPPFLAGS += -DNDEBUG
 endif
 
+ifeq ($(ARCH),)
+	ARCH_ = $(shell sh -c 'uname -m 2>/dev/null')
+	ifeq ($(ARCH_),i386)
+		ARCH = i386
+	endif
+endif
 
 all: hogan.a
 
