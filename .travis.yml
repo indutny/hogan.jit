@@ -1,2 +1,2 @@
 script:
- - "uname -m && make -j4 -B test"
+ - "make -j4 -B test"
