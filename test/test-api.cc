@@ -81,6 +81,6 @@ TEST_START("API test")
   assert(out != NULL);
   assert(strcmp("some neat template. oh noes", out) == 0);
 
-  delete t;
   delete out;
+  delete t;
 TEST_END("API test")

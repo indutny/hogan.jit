@@ -75,7 +75,7 @@ class Assembler {
   void Xor(int dst, int src);
   void Call(const void* addr);
   void Leave();
-  void Return();
+  void Return(uint16_t bytes);
   void Cmp(int src, uint32_t imm);
   void Je(Label* lbl);
   void Jmp(Label* lbl);

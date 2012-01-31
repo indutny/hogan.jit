@@ -121,8 +121,13 @@ void Assembler::Leave() {
 }
 
 
-void Assembler::Return() {
-  emit(0xc3);
+void Assembler::Return(uint16_t bytes) {
+  if (bytes == 0) {
+    emit(0xc3);
+  } else {
+    emit(0xc2);
+    Immediate(bytes);
+  }
 }
 
 

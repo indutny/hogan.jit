@@ -1,11 +1,10 @@
 CPPFLAGS += -Wall -Wextra -Wno-unused-parameter
 CPPFLAGS += -fPIC -Iinclude
+CPPFLAGS += -g
 
 ifeq ($(MODE),release)
 	CPPFLAGS += -O3
 	CPPFLAGS += -DNDEBUG
-else
-	CPPFLAGS += -g
 endif
 
 

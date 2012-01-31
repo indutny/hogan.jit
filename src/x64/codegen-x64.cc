@@ -14,7 +14,6 @@ namespace hogan {
 void Codegen::GeneratePrologue() {
   Push(rbp);
   Mov(rbp, rsp);
-  Push(rbx);
 
   // Reserve space for 3 pointers
   SubImm(rsp, 24);
@@ -28,10 +27,9 @@ void Codegen::GeneratePrologue() {
 
 void Codegen::GenerateEpilogue() {
   MovFromContext(rax, -8);
-  AddImm(rsp, 24);
-  Pop(rbx);
-  Leave();
-  Return();
+  Mov(rsp, rbp);
+  Pop(rbp);
+  Return(0);
 }
 
 
