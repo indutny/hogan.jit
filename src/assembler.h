@@ -48,6 +48,7 @@ class Assembler {
     offset += sizeof(imm);
   }
 
+
   inline void Immediate(const uint32_t imm, const uint8_t size) {
     if (size == 1) {
       Immediate(static_cast<const uint8_t>(imm));
@@ -59,6 +60,7 @@ class Assembler {
       Immediate(static_cast<const uint64_t>(imm));
     }
   }
+
 
   void Push(int reg);
   void PushImm(uint32_t imm);
@@ -73,6 +75,7 @@ class Assembler {
   void SubImm(int dst, uint8_t imm);
   void Inc(int dst);
   void Xor(int dst, int src);
+  int PreCall(int offset, int args);
   void Call(const void* addr);
   void Leave();
   void Return(uint16_t bytes);

@@ -16,8 +16,7 @@ void Codegen::GeneratePrologue() {
   Mov(ebp, esp);
 
   // Reserve space for 3 pointers
-  // Note: 4 is alignment bytes
-  SubImm(esp, 12 + 4);
+  SubImm(esp, 12 + 12);
 
   MovFromContext(eax, 8); // get `obj`
   MovToContext(-8, eax); // store `obj`
@@ -70,11 +69,14 @@ void Codegen::GenerateString(AstNode* node) {
   value[node->length] = 0;
   data->Push(value);
 
+  int align = PreCall(0, 2);
+
   MovFromContext(eax, -12);
   PushImm(reinterpret_cast<const uint64_t>(value)); // str to push
   Push(eax); // out
   Call(*reinterpret_cast<void**>(&method));
-  AddImm(esp, 8);
+
+  AddImm(esp, align);
 
   AddImmToContext(-4, node->length);
 }
@@ -100,35 +102,47 @@ void Codegen::GenerateProp(AstNode* node) {
     value[node->length] = 0;
     data->Push(value);
 
+    int align = PreCall(0, 2);
+
     MovFromContext(eax, -8);
-    PushImm(reinterpret_cast<const uint64_t>(value)); // prop value
+    PushImm(reinterpret_cast<const uint64_t>(value)); // str to push
     Push(eax); // obj
     Call(*reinterpret_cast<void**>(&method));
-    AddImm(esp, 8);
+
+    // Unwind stack and unalign
+    AddImm(esp, align);
   }
 
   // Store pointer to value
-  MovFromContext(ebx, -12);
   Push(eax); // value
-  Push(ebx); // out
 
   {
     Queue<char*>::PushType method = &Queue<char*>::Push;
 
+    int align = PreCall(4, 2);
+
+    Push(eax); // value
+    MovFromContext(eax, -12);
+    Push(eax); // out
     Call(*reinterpret_cast<void**>(&method)); // push
+
+    AddImm(esp, align); // unalign stack
   }
 
-  Pop(ebx);
+  Pop(eax);
 
   {
     StrLenType method = &strlen_wrap;
 
+    int align = PreCall(0, 1);
+
+    Push(eax); // value
     Call(*reinterpret_cast<void**>(&method)); // strlen
+
+    AddImm(esp, align); // unalign stack
 
     AddToContext(-4, eax);
   }
-
-  Pop(eax);
 }
 
 
@@ -163,10 +177,14 @@ void Codegen::GenerateIf(AstNode* node) {
     value[node->length] = 0;
     data->Push(value);
 
+    int delta = PreCall(4, 2);
+
     PushImm(reinterpret_cast<const uint64_t>(value)); // prop value
     Push(eax); // obj
     Call(*reinterpret_cast<void**>(&method));
-    AddImm(esp, 8);
+
+    // Unalign stack
+    AddImm(esp, delta);
 
     MovToContext(-8, eax); // Replace context var
   }
@@ -184,10 +202,15 @@ void Codegen::GenerateIf(AstNode* node) {
   {
     IsArrayType method = &IsArray;
 
+    int delta = PreCall(8, 1);
+
+    Push(eax); // prop value
     Call(*reinterpret_cast<void**>(&method));
+
+    // Unalign stack
+    AddImm(esp, delta);
   }
 
-  // index = 0
   PushImm(0);
 
   // If not array - skip to if's body
@@ -203,18 +226,21 @@ void Codegen::GenerateIf(AstNode* node) {
     GetAtType method = &GetAt;
 
     Pop(eax);
-    Pop(edi);
+    Pop(ecx);
 
-    MovToContext(esi, eax);
+    Mov(edx, eax);
     Inc(eax);
 
-    Push(edi);
+    Push(ecx);
     Push(eax);
 
-    Push(esi); // index
-    Push(edi); // obj
+    int delta = PreCall(12, 2);
+
+    Push(edx); // index
+    Push(ecx); // obj
     Call(*reinterpret_cast<void**>(&method));
-    AddImm(esp, 8);
+
+    AddImm(esp, delta);
 
     // If At() returns NULL - we reached end of array
     Cmp(eax, 0);
@@ -226,16 +252,18 @@ void Codegen::GenerateIf(AstNode* node) {
 
   Bind(&Start);
 
+  int delta = PreCall(12, 0);
   GenerateBlock(main_block);
+  AddImm(esp, delta);
 
   Pop(eax);
-  Pop(edi);
+  Pop(ecx);
 
   Cmp(eax, 0);
   Je(&EndIf);
 
   // Store parent and loop index
-  Push(edi);
+  Push(ecx);
   Push(eax);
 
   // And continue iterating
@@ -249,7 +277,7 @@ void Codegen::GenerateIf(AstNode* node) {
   Bind(&EndIterate);
 
   Pop(eax);
-  Pop(edi);
+  Pop(ecx);
 
   Bind(&EndIf);
 
