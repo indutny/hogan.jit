@@ -9,8 +9,7 @@ ifeq ($(MODE),release)
 endif
 
 ifeq ($(ARCH),)
-	ARCH_ = $(shell sh -c 'uname -m 2>/dev/null')
-	ifeq ($(ARCH_),i386)
+	ifeq ($(shell sh -c 'uname -m 2>/dev/null'),i386)
 		ARCH = i386
 	endif
 endif
@@ -22,7 +21,11 @@ OBJS += src/parser.o
 OBJS += src/compiler.o
 
 ifeq ($(ARCH),i386)
-	CPPFLAGS += -arch i386
+	ifeq ($(shell sh -c 'uname -s 2>/dev/null'),Darwin)
+		CPPFLAGS += -arch i386
+	else
+		CPPFLAGS += -m32
+	endif
 	OBJS += src/ia32/assembler-ia32.o
 	OBJS += src/ia32/codegen-ia32.o
 else
