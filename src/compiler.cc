@@ -68,6 +68,9 @@ Code::Code(uint32_t size_) {
 
 Code::~Code() {
   assert(munmap(code, static_cast<size_t>(size)) == 0);
+
+  char* chunk;
+  while ((chunk = data->Shift()) != NULL) delete chunk;
   delete data;
 }
 
