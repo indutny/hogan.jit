@@ -8,8 +8,6 @@ namespace hogan {
 template <class T>
 class Queue {
  public:
-  typedef void (Queue<T>::*PushType)(T);
-
   class Entity {
    public:
     T value;

@@ -1,7 +1,7 @@
 #include "hogan.h"
 #include "compiler.h"
 #include "codegen.h"
-#include "queue.h"
+#include "output.h" // TemplateOutput
 
 #include <assert.h> // assert
 #include <stdlib.h> // NULL, abort
@@ -31,22 +31,10 @@ Template* Compiler::Compile(AstNode* ast,
 
 
 char* Template::Render(void* obj) {
-  Queue<char*> out;
-  size_t length = code->AsFunction()(obj, &out);
-  if (length == 0) return NULL;
+  TemplateOutput out;
+  code->AsFunction()(obj, &out);
 
-  char* result = new char[length + 1];
-  result[length] = 0;
-
-  char* chunk;
-  off_t offset = 0;
-  while ((chunk = out.Shift()) != NULL) {
-    size_t size = strlen(chunk);
-    memcpy(result + offset, chunk, size);
-    offset += size;
-  }
-
-  return result;
+  return out.Join();
 };
 
 

@@ -2,7 +2,7 @@
 #include "assembler-ia32.h"
 #include "assembler.h"
 #include "parser.h" // AstNode
-#include "queue.h" // Queue
+#include "output.h" // TemplateOutput
 #include "hogan.h" // Options
 
 #include <assert.h> // assert
@@ -61,17 +61,21 @@ void Codegen::GenerateBlock(AstNode* node) {
 }
 
 
+typedef void (TemplateOutput::*PushCallback)(const char*, const size_t);
+
+
 void Codegen::GenerateString(AstNode* node) {
-  Queue<char*>::PushType method = &Queue<char*>::Push;
+  PushCallback method = &TemplateOutput::Push;
 
   char* value = new char[node->length + 1];
   memcpy(value, node->value, node->length);
   value[node->length] = 0;
   data->Push(value);
 
-  int align = PreCall(0, 2);
+  int align = PreCall(0, 3);
 
   MovFromContext(eax, -12);
+  PushImm(node->length); // length
   PushImm(reinterpret_cast<const uint64_t>(value)); // str to push
   Push(eax); // out
   Call(*reinterpret_cast<void**>(&method));
@@ -105,35 +109,18 @@ void Codegen::GenerateProp(AstNode* node) {
     AddImm(esp, align);
   }
 
-  // Store pointer to value
-  Push(eax); // value
-
   {
-    Queue<char*>::PushType method = &Queue<char*>::Push;
+    PushCallback method = &TemplateOutput::Push;
 
-    int align = PreCall(4, 2);
+    int align = PreCall(4, 3);
 
+    PushImm(0); // length
     Push(eax); // value
     MovFromContext(eax, -12);
     Push(eax); // out
     Call(*reinterpret_cast<void**>(&method)); // push
 
     AddImm(esp, align); // unalign stack
-  }
-
-  Pop(eax);
-
-  {
-    StrLenType method = &strlen;
-
-    int align = PreCall(0, 1);
-
-    Push(eax); // value
-    Call(*reinterpret_cast<void**>(&method)); // strlen
-
-    AddImm(esp, align); // unalign stack
-
-    AddToContext(-4, eax);
   }
 }
 

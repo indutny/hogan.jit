@@ -5,8 +5,6 @@ static const char* adjective = "fast";
 class Object {
  public:
   static const void* GetString(void* obj, const char* key) {
-    assert(strcmp(key, "adjective") == 0);
-
     return reinterpret_cast<const void*>(adjective);
   }
 };
@@ -21,6 +19,15 @@ TEST_START("bench basic")
   Object data;
   Template* t;
   char* out;
+
+  const int cnum = 200000;
+
+  BENCH_START(compile, cnum)
+  for (int i = 0; i < cnum; i++) {
+    t = hogan.Compile("some {{adjective}} template.");
+    delete t;
+  }
+  BENCH_END(compile, cnum)
 
   t = hogan.Compile("some {{adjective}} template.");
 

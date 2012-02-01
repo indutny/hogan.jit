@@ -3,6 +3,8 @@
 
 #include "hogan.h"
 #include "parser.h"
+#include "queue.h" // Queue
+#include "output.h" // TemplateOutput
 
 #include <stdint.h> // uint32_t
 #include <sys/types.h> // size_t
@@ -14,7 +16,7 @@ class Template;
 class TemplateCode;
 
 typedef size_t (*TemplateFunction)(void* obj,
-                                   Queue<char*>* out);
+                                   TemplateOutput* out);
 
 class Compiler {
  public:

@@ -2,7 +2,7 @@
 #include "assembler-x64.h"
 #include "assembler.h"
 #include "parser.h" // AstNode
-#include "queue.h" // Queue
+#include "output.h" // TemplateOutput
 #include "hogan.h" // Options
 
 #include <assert.h> // assert
@@ -59,27 +59,26 @@ void Codegen::GenerateBlock(AstNode* node) {
 }
 
 
+typedef void (TemplateOutput::*PushCallback)(const char*, const size_t);
+
+
 void Codegen::GenerateString(AstNode* node) {
-  Queue<char*>::PushType method = &Queue<char*>::Push;
+  PushCallback method = &TemplateOutput::Push;
 
   char* value = new char[node->length + 1];
   memcpy(value, node->value, node->length);
   value[node->length] = 0;
   data->Push(value);
 
-  int delta = PreCall(0, 2);
+  int delta = PreCall(0, 3);
 
   MovFromContext(rdi, -24); // out
-  MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // push value
+  MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // value
+  MovImm(rdx, node->length); // length
   Call(*reinterpret_cast<void**>(&method));
 
   AddImm(rsp, delta);
-
-  AddImmToContext(-8, node->length);
 }
-
-
-typedef size_t (*StrLenType)(const char*);
 
 
 void Codegen::GenerateProp(AstNode* node) {
@@ -100,31 +99,17 @@ void Codegen::GenerateProp(AstNode* node) {
     AddImm(rsp, delta);
   }
 
-  // Store pointer to value
-  Push(rax);
-
   {
-    Queue<char*>::PushType method = &Queue<char*>::Push;
+    PushCallback method = &TemplateOutput::Push;
 
-    int delta = PreCall(8, 2);
+    int delta = PreCall(8, 3);
 
     MovFromContext(rdi, -24); // out
     Mov(rsi, rax); // result of get prop
+    MovImm(rdx, 0); // let output stream determine size
     Call(*reinterpret_cast<void**>(&method)); // push
 
     AddImm(rsp, delta);
-  }
-
-  // Restore it to calculate strlen
-  Pop(rax);
-
-  {
-    StrLenType method = &strlen;
-
-    Mov(rdi, rax); // str
-    Call(*reinterpret_cast<void**>(&method)); // strlen
-
-    AddToContext(-8, rax);
   }
 }
 
