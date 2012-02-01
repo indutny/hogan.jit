@@ -13,6 +13,7 @@ TEST_START("bench basic")
   Options options(Object::GetString,
                   NULL,
                   NULL,
+                  NULL,
                   NULL);
   Hogan hogan(&options);
 

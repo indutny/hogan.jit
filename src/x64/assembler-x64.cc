@@ -125,9 +125,9 @@ void Assembler::Call(const void* addr) {
   } else {
     // Far
 
-    MovImm(rbx, reinterpret_cast<const uint64_t>(addr));
+    MovImm(rdx, reinterpret_cast<const uint64_t>(addr));
     emit(0xff); // Call
-    emit(0xc0 | 2 << 3 | rbx);
+    emit(0xc0 | 2 << 3 | rdx);
   }
 }
 

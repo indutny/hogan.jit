@@ -6,7 +6,6 @@
 #include "hogan.h" // Options
 
 #include <assert.h> // assert
-#include <string.h> // memcpy
 #include <stdlib.h> // NULL
 
 namespace hogan {
@@ -48,6 +47,9 @@ void Codegen::GenerateBlock(AstNode* node) {
      case AstNode::kIf:
       GenerateIf(descendant);
       break;
+     case AstNode::kPartial:
+      GeneratePartial(descendant);
+      break;
      default:
       assert(false && "Unexpected");
     }
@@ -65,10 +67,7 @@ typedef void (TemplateOutput::*PushCallback)(const char*, const size_t);
 void Codegen::GenerateString(AstNode* node) {
   PushCallback method = &TemplateOutput::Push;
 
-  char* value = new char[node->length + 1];
-  memcpy(value, node->value, node->length);
-  value[node->length] = 0;
-  data->Push(value);
+  char* value = ToData(node);
 
   int delta = PreCall(0, 3);
 
@@ -85,10 +84,7 @@ void Codegen::GenerateProp(AstNode* node) {
   {
     PropertyCallback method = options->getString;
 
-    char* value = new char[node->length + 1];
-    memcpy(value, node->value, node->length);
-    value[node->length] = 0;
-    data->Push(value);
+    char* value = ToData(node);
 
     int delta = PreCall(0, 2);
 
@@ -124,10 +120,7 @@ void Codegen::GenerateIf(AstNode* node) {
   {
     PropertyCallback method = options->getObject;
 
-    char* value = new char[node->length + 1];
-    memcpy(value, node->value, node->length);
-    value[node->length] = 0;
-    data->Push(value);
+    char* value = ToData(node);
 
     int delta = PreCall(8, 2);
 
@@ -232,6 +225,36 @@ void Codegen::GenerateIf(AstNode* node) {
 
   Pop(rdi);
   MovToContext(-16, rdi); // restore obj
+}
+
+
+void Codegen::GeneratePartial(AstNode* node) {
+  // Get partial
+  {
+    PartialCallback method = options->getPartial;
+
+    char* value = ToData(node);
+
+    int delta = PreCall(0, 1);
+
+    MovImm(rdi, reinterpret_cast<const uint64_t>(value)); // partial name
+    Call(*reinterpret_cast<void**>(&method));
+
+    AddImm(rsp, delta);
+  }
+
+  // Invoke partial
+  {
+    InvokePartialType method = InvokePartial;
+    int delta = PreCall(0, 3);
+
+    Mov(rdi, rax);
+    MovFromContext(rsi, -16); // obj
+    MovFromContext(rdx, -24); // out
+    Call(*reinterpret_cast<void**>(&method));
+
+    AddImm(rsp, delta);
+  }
 }
 
 } // namespace hogan

@@ -19,7 +19,8 @@ TEST_START("Template output reallocation")
   Options options(NULL,
                   Object::GetObject,
                   Object::At,
-                  Object::IsArray);
+                  Object::IsArray,
+                  NULL);
 
   Hogan hogan(&options);
 

@@ -14,7 +14,8 @@ class AstNode {
     kBlock,
     kString,
     kProp,
-    kIf
+    kIf,
+    kPartial
   };
 
   AstNode(AstNodeType type_) : type(type_),

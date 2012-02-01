@@ -32,7 +32,8 @@ TEST_START("API test")
   Options options(Object::GetString,
                   Object::GetObject,
                   Object::At,
-                  Object::IsArray);
+                  Object::IsArray,
+                  NULL);
   Hogan hogan(&options);
 
   Object data;

@@ -6,7 +6,6 @@
 #include "hogan.h" // Options
 
 #include <assert.h> // assert
-#include <string.h> // memcpy
 #include <stdlib.h> // NULL
 
 namespace hogan {
@@ -28,14 +27,6 @@ void Codegen::GeneratePrologue() {
 }
 
 
-void Codegen::GenerateEpilogue() {
-  MovFromContext(eax, -4);
-  Mov(esp, ebp);
-  Pop(ebp);
-  Return(0);
-}
-
-
 void Codegen::GenerateBlock(AstNode* node) {
   AstNode* descendant;
 
@@ -50,6 +41,9 @@ void Codegen::GenerateBlock(AstNode* node) {
      case AstNode::kIf:
       GenerateIf(descendant);
       break;
+     case AstNode::kPartial:
+      GeneratePartial(descendant);
+      break;
      default:
       assert(false && "Unexpected");
     }
@@ -61,16 +55,21 @@ void Codegen::GenerateBlock(AstNode* node) {
 }
 
 
+void Codegen::GenerateEpilogue() {
+  MovFromContext(eax, -4);
+  Mov(esp, ebp);
+  Pop(ebp);
+  Return(0);
+}
+
+
 typedef void (TemplateOutput::*PushCallback)(const char*, const size_t);
 
 
 void Codegen::GenerateString(AstNode* node) {
   PushCallback method = &TemplateOutput::Push;
 
-  char* value = new char[node->length + 1];
-  memcpy(value, node->value, node->length);
-  value[node->length] = 0;
-  data->Push(value);
+  char* value = ToData(node);
 
   int align = PreCall(0, 3);
 
@@ -93,10 +92,7 @@ void Codegen::GenerateProp(AstNode* node) {
   {
     PropertyCallback method = options->getString;
 
-    char* value = new char[node->length + 1];
-    memcpy(value, node->value, node->length);
-    value[node->length] = 0;
-    data->Push(value);
+    char* value = ToData(node);
 
     int align = PreCall(0, 2);
 
@@ -135,10 +131,7 @@ void Codegen::GenerateIf(AstNode* node) {
   {
     PropertyCallback method = options->getObject;
 
-    char* value = new char[node->length + 1];
-    memcpy(value, node->value, node->length);
-    value[node->length] = 0;
-    data->Push(value);
+    char* value = ToData(node);
 
     int delta = PreCall(4, 2);
 
@@ -246,6 +239,38 @@ void Codegen::GenerateIf(AstNode* node) {
 
   Pop(eax);
   MovToContext(-8, eax); // restore obj
+}
+
+
+void Codegen::GeneratePartial(AstNode* node) {
+  // Get partial
+  {
+    PartialCallback method = options->getPartial;
+
+    char* value = ToData(node);
+
+    int delta = PreCall(0, 1);
+
+    PushImm(reinterpret_cast<const uint64_t>(value)); // partial name
+    Call(*reinterpret_cast<void**>(&method));
+
+    AddImm(esp, delta);
+  }
+
+  // Invoke partial
+  {
+    InvokePartialType method = InvokePartial;
+    int delta = PreCall(0, 3);
+
+    MovFromContext(ecx, -12); // out
+    Push(ecx);
+    MovFromContext(ecx, -8); // obj
+    Push(ecx);
+    Push(eax); // partial
+    Call(*reinterpret_cast<void**>(&method));
+
+    AddImm(esp, delta);
+  }
 }
 
 } // namespace hogan

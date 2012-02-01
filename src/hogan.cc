@@ -7,6 +7,26 @@
 
 namespace hogan {
 
+Options::Options() {
+  getString = NULL;
+  getObject = NULL;
+  at = NULL;
+  isArray = NULL;
+  getPartial = NULL;
+}
+
+Options::Options(PropertyCallback getString_,
+                 PropertyCallback getObject_,
+                 NumericPropertyCallback at_,
+                 IsArrayCallback isArray_,
+                 PartialCallback getPartial_) {
+  getString = getString_;
+  getObject = getObject_;
+  at = at_;
+  isArray = isArray_;
+  getPartial = getPartial_;
+}
+
 Hogan::Hogan(Options* options) {
   options_ = new Options(*options);
 }

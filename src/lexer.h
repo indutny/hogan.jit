@@ -16,6 +16,7 @@ class Lexer {
       kIf,
       kElse,
       kEndIf,
+      kPartial,
       kEnd
     };
 
@@ -73,6 +74,9 @@ class Lexer {
       offset++;
     } else if (source[offset] == '/') {
       type = Token::kEndIf;
+      offset++;
+    } else if (source[offset] == '>') {
+      type = Token::kPartial;
       offset++;
     } else {
       type = Token::kProp;

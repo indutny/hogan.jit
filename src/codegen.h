@@ -6,6 +6,8 @@
 #include "assembler.h"
 #include "parser.h"
 
+#include <string.h> // memcpy
+
 namespace hogan {
 
 class Code;
@@ -24,6 +26,21 @@ class Codegen : public Assembler {
   void GenerateString(AstNode* node);
   void GenerateProp(AstNode* node);
   void GenerateIf(AstNode* node);
+  void GeneratePartial(AstNode* node);
+
+  typedef void (*InvokePartialType)(Template*, void*, TemplateOutput*);
+  static void InvokePartial(Template* t, void* obj, TemplateOutput* out) {
+    t->code->AsFunction()(obj, out);
+  }
+
+  inline char* ToData(AstNode* node) {
+    char* value = new char[node->length + 1];
+    memcpy(value, node->value, node->length);
+    value[node->length] = 0;
+    data->Push(value);
+
+    return value;
+  }
 
   Queue<char*>* data;
   Options* options;

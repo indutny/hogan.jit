@@ -39,11 +39,13 @@ src/%.o: src/%.cc
 
 TESTS += test/test-api
 TESTS += test/test-output-realloc
+TESTS += test/test-partials
 TESTS += test/bench-basic
 
 test: $(TESTS)
 	@test/test-api
 	@test/test-output-realloc
+	@test/test-partials
 
 test/%: test/%.cc hogan.a
 	$(CXX) $(CPPFLAGS) $< -o $@ hogan.a

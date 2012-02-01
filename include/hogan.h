@@ -6,6 +6,7 @@ namespace hogan {
 class Template;
 class TemplateCode;
 class Compiler;
+class Codegen;
 class Options;
 
 class Hogan {
@@ -21,26 +22,22 @@ class Hogan {
 typedef const void* (*PropertyCallback)(void* obj, const char* key);
 typedef const void* (*NumericPropertyCallback)(void* obj, const int index);
 typedef int (*IsArrayCallback)(void* obj);
+typedef Template* (*PartialCallback)(const char* name);
 
 class Options {
  public:
   Options(PropertyCallback getString_,
           PropertyCallback getObject_,
           NumericPropertyCallback at_,
-          IsArrayCallback isArray_) {
-    getString = getString_;
-    getObject = getObject_;
-    at = at_;
-    isArray = isArray_;
-  }
-
-  ~Options() {
-  }
+          IsArrayCallback isArray_,
+          PartialCallback getPartial_);
+  Options();
 
   PropertyCallback getString;
   PropertyCallback getObject;
   NumericPropertyCallback at;
   IsArrayCallback isArray;
+  PartialCallback getPartial;
 };
 
 
@@ -54,6 +51,7 @@ class Template {
  private:
   TemplateCode* code;
   friend class Compiler;
+  friend class Codegen;
 };
 
 } // namespace hogan
