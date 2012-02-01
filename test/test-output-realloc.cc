@@ -1,7 +1,5 @@
 #include "test.h"
 
-static const char* adjective = "neat";
-
 class Object {
  public:
   static const void* GetObject(void* obj, const char* key) {
