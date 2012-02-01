@@ -1,9 +1,9 @@
 #ifndef _SRC_OUTPUT_H_
 #define _SRC_OUTPUT_H_
 
-#include "assert.h" // assert
-#include "sys/types.h" // size_t
-#include "string.h" // strlen, memcpy
+#include <assert.h> // assert
+#include <sys/types.h> // size_t
+#include <string.h> // strlen, memcpy
 
 namespace hogan {
 

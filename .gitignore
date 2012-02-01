@@ -2,4 +2,5 @@
 *.o
 *.dSYM
 test/test-api
+test/test-output-realloc
 test/bench-basic

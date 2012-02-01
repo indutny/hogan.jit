@@ -2,7 +2,7 @@
 #define _SRC_ASSEMBLER_H_
 
 #include "compiler.h"
-#include "stdint.h" // uintXX_t
+#include <stdint.h> // uintXX_t
 
 namespace hogan {
 

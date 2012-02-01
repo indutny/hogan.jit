@@ -38,10 +38,12 @@ src/%.o: src/%.cc
 	$(CXX) $(CPPFLAGS) -Isrc -c $< -o $@
 
 TESTS += test/test-api
+TESTS += test/test-output-realloc
 TESTS += test/bench-basic
 
 test: $(TESTS)
 	@test/test-api
+	@test/test-output-realloc
 
 test/%: test/%.cc hogan.a
 	$(CXX) $(CPPFLAGS) $< -o $@ hogan.a
