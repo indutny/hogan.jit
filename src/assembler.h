@@ -113,7 +113,7 @@ class Assembler {
 
   inline void emit(int byte) {
     (reinterpret_cast<unsigned char*>(code->code) + offset++)[0] = byte;
-    if (offset + 16 >= code->size) code->Grow();
+    if (static_cast<uint32_t>(offset + 16) >= code->size) code->Grow();
   }
 
   inline char* pos() {
