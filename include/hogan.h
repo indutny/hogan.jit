@@ -20,7 +20,7 @@ class Hogan {
 
 typedef const void* (*PropertyCallback)(void* obj, const char* key);
 typedef const void* (*NumericPropertyCallback)(void* obj, const int index);
-typedef bool (*IsArrayCallback)(void* obj);
+typedef int (*IsArrayCallback)(void* obj);
 
 class Options {
  public:

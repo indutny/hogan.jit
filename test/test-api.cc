@@ -23,7 +23,7 @@ class Object {
     return index < 3 ? obj : NULL;
   }
 
-  static bool IsArray(void* obj) {
+  static int IsArray(void* obj) {
     return obj == reinterpret_cast<const void*>(adjective);
   }
 };
