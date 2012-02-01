@@ -2,18 +2,21 @@
 
 static const char* adjective = "fast";
 
-class Object : public ObjectTemplate {
-  public:
-   const char* GetString(const char* key) {
-     return adjective;
-   }
+class Object {
+ public:
+  static const void* GetString(void* obj, const char* key) {
+    assert(strcmp(key, "adjective") == 0);
 
-   ObjectTemplate* GetObject(const char* key) { return NULL; }
-   Object* At(const int index) { return NULL; }
-   bool IsArray() { return false; }
+    return reinterpret_cast<const void*>(adjective);
+  }
 };
 
 TEST_START("bench basic")
+  Options options(Object::GetString,
+                  NULL,
+                  NULL,
+                  NULL);
+  Hogan hogan(&options);
 
   Object data;
   Template* t;

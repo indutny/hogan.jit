@@ -18,8 +18,7 @@ using namespace hogan;
 
 #define TEST_START(name)\
 int main(void) {\
-  fprintf(stdout, "-- %s --\n", name);\
-  Hogan hogan;\
+  fprintf(stdout, "-- %s --\n", name);
 
 #define TEST_END(name)\
   fclose(stdout);\

@@ -1,6 +1,7 @@
 #ifndef _SRC_ASM_H_
 #define _SRC_ASM_H_
 
+#include "hogan.h"
 #include "parser.h"
 
 #include <stdint.h> // uint32_t
@@ -11,14 +12,13 @@ namespace hogan {
 class Code;
 class Template;
 class TemplateCode;
-class ObjectTemplate;
 
-typedef size_t (*TemplateFunction)(ObjectTemplate* obj,
+typedef size_t (*TemplateFunction)(void* obj,
                                    Queue<char*>* out);
 
 class Compiler {
  public:
-  static Template* Compile(AstNode* ast, const char* code);
+  static Template* Compile(AstNode* ast, Options* options, const char* source);
 };
 
 class Code {

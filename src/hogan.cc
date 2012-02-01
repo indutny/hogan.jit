@@ -7,21 +7,23 @@
 
 namespace hogan {
 
-Hogan::Hogan() {
+Hogan::Hogan(Options* options) {
+  options_ = new Options(*options);
 }
 
 Hogan::~Hogan() {
+  delete options_;
 }
 
-Template* Hogan::Compile(const char* source_) {
-  uint32_t len = strlen(source_);
-  char* source = new char[len];
-  memcpy(source, source_, len);
+Template* Hogan::Compile(const char* source) {
+  uint32_t len = strlen(source);
+  char* source_ = new char[len];
+  memcpy(source_, source, len);
 
-  Parser parser(source, len);
+  Parser parser(source_, len);
   parser.Parse();
 
-  return Compiler::Compile(parser.Result(), source);
+  return Compiler::Compile(parser.Result(), options_, source_);
 }
 
 } // namespace hogan

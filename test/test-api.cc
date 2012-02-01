@@ -2,54 +2,39 @@
 
 static const char* adjective = "neat";
 
-class ArrayObject : public ObjectTemplate {
+class Object {
  public:
-  const char* GetString(const char* key) { return NULL; }
-  ArrayObject* GetObject(const char* key) { return NULL; }
-
-  ArrayObject* At(const int index) {
-    if (index < 3) {
-      return this;
-    } else {
-      return NULL;
-    }
-  }
-
-  bool IsArray() {
-    return true;
-  }
-};
-
-class Object : public ObjectTemplate {
- public:
-  const char* GetString(const char* key) {
+  static const void* GetString(void* obj, const char* key) {
     assert(strcmp(key, "adjective") == 0);
 
-    return adjective;
+    return reinterpret_cast<const void*>(adjective);
   }
-
-  ObjectTemplate* GetObject(const char* key) {
+  static const void* GetObject(void* obj, const char* key) {
     if (strcmp(key, "prop") == 0) {
-      return this;
-    } if (strcmp(key, "arrprop") == 0) {
-      return &array;
+      return obj;
+    } else if (strcmp(key, "arrprop") == 0) {
+      return reinterpret_cast<const void*>(adjective);
     } else {
       return NULL;
     }
   }
 
-  Object* At(const int index) {
-    return NULL;
+  static const void* At(void* obj, const int index) {
+    return index < 3 ? obj : NULL;
   }
 
-  bool IsArray() {
-    return false;
+  static bool IsArray(void* obj) {
+    return obj == reinterpret_cast<const void*>(adjective);
   }
-
-  ArrayObject array;
 };
 
 TEST_START("API test")
+  Options options(Object::GetString,
+                  Object::GetObject,
+                  Object::At,
+                  Object::IsArray);
+  Hogan hogan(&options);
+
   Object data;
   Template* t;
   char* out;
@@ -83,4 +68,5 @@ TEST_START("API test")
 
   delete out;
   delete t;
+
 TEST_END("API test")

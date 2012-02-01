@@ -3,7 +3,7 @@
 #include "assembler.h"
 #include "parser.h" // AstNode
 #include "queue.h" // Queue
-#include "hogan.h" // ObjectTemplate
+#include "hogan.h" // Options
 
 #include <assert.h> // assert
 #include <string.h> // memcpy
@@ -82,20 +82,12 @@ void Codegen::GenerateString(AstNode* node) {
 }
 
 
-typedef const char* (*GetStrPropType)(ObjectTemplate*, const char*);
-static const char* GetStrProp(ObjectTemplate* obj, const char* prop) {
-  return obj->GetString(prop);
-}
-
 typedef size_t (*StrLenType)(const char*);
-static size_t strlen_wrap(const char* str) {
-  return strlen(str);
-}
 
 
 void Codegen::GenerateProp(AstNode* node) {
   {
-    GetStrPropType method = &GetStrProp;
+    PropertyCallback method = options->getString;
 
     char* value = new char[node->length + 1];
     memcpy(value, node->value, node->length);
@@ -132,7 +124,7 @@ void Codegen::GenerateProp(AstNode* node) {
   Pop(eax);
 
   {
-    StrLenType method = &strlen_wrap;
+    StrLenType method = &strlen;
 
     int align = PreCall(0, 1);
 
@@ -146,22 +138,6 @@ void Codegen::GenerateProp(AstNode* node) {
 }
 
 
-typedef ObjectTemplate* (*GetPropType)(ObjectTemplate*, const char*);
-static ObjectTemplate* GetProp(ObjectTemplate* obj, const char* prop) {
-  return obj->GetObject(prop);
-}
-
-typedef ObjectTemplate* (*GetAtType)(ObjectTemplate*, const int);
-static ObjectTemplate* GetAt(ObjectTemplate* obj, const int index) {
-  return obj->At(index);
-}
-
-typedef bool (*IsArrayType)(ObjectTemplate* obj);
-static bool IsArray(ObjectTemplate* obj) {
-  return obj->IsArray();
-}
-
-
 void Codegen::GenerateIf(AstNode* node) {
   AstNode* main_block = node->Shift();
   AstNode* else_block = node->Shift();
@@ -170,7 +146,7 @@ void Codegen::GenerateIf(AstNode* node) {
   Push(eax);
 
   {
-    GetPropType method = &GetProp;
+    PropertyCallback method = options->getObject;
 
     char* value = new char[node->length + 1];
     memcpy(value, node->value, node->length);
@@ -200,7 +176,7 @@ void Codegen::GenerateIf(AstNode* node) {
 
   // Check if we need to iterate props
   {
-    IsArrayType method = &IsArray;
+    IsArrayCallback method = options->isArray;
 
     int delta = PreCall(8, 1);
 
@@ -223,7 +199,7 @@ void Codegen::GenerateIf(AstNode* node) {
 
   // Get item at index
   {
-    GetAtType method = &GetAt;
+    NumericPropertyCallback method = options->at;
 
     Pop(eax);
     Pop(ecx);

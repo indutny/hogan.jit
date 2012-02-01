@@ -12,11 +12,13 @@
 
 namespace hogan {
 
-Template* Compiler::Compile(AstNode* ast, const char* source) {
+Template* Compiler::Compile(AstNode* ast,
+                            Options* options,
+                            const char* source) {
   Template* t = new Template();
 
   t->code->source = source;
-  Codegen codegen(t->code);
+  Codegen codegen(t->code, options);
 
   codegen.GeneratePrologue();
   codegen.GenerateBlock(ast);
@@ -28,7 +30,7 @@ Template* Compiler::Compile(AstNode* ast, const char* source) {
 }
 
 
-char* Template::Render(ObjectTemplate* obj) {
+char* Template::Render(void* obj) {
   Queue<char*> out;
   size_t length = code->AsFunction()(obj, &out);
   if (length == 0) return NULL;
