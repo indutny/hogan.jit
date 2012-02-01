@@ -3,6 +3,12 @@ CPPFLAGS += -fPIC -Iinclude
 CPPFLAGS += -fno-strict-aliasing
 CPPFLAGS += -g
 
+ifeq ($(shell sh -c 'uname -s 2>/dev/null'),Darwin)
+	OS = Darwin
+else
+	OS = Linux
+endif
+
 ifeq ($(MODE),release)
 	CPPFLAGS += -O3
 	CPPFLAGS += -DNDEBUG
@@ -19,7 +25,7 @@ OBJS += src/parser.o
 OBJS += src/compiler.o
 
 ifeq ($(ARCH),i386)
-	ifeq ($(shell sh -c 'uname -s 2>/dev/null'),Darwin)
+	ifeq ($(OS),Darwin)
 		CPPFLAGS += -arch i386
 	else
 		CPPFLAGS += -m32
@@ -29,6 +35,12 @@ ifeq ($(ARCH),i386)
 else
 	OBJS += src/x64/assembler-x64.o
 	OBJS += src/x64/codegen-x64.o
+endif
+
+ifeq ($(OS),Darwin)
+	CPPFLAGS += -D__DARWIN
+else
+	CPPFLAGS += -D__LINUX
 endif
 
 hogan.a: $(OBJS)

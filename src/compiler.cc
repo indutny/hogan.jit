@@ -10,6 +10,8 @@
 #include <sys/types.h> // size_t
 #include <stdint.h> // uint32_t
 
+#include <unistd.h> // sysconf or getpagesize
+
 namespace hogan {
 
 Template* Compiler::Compile(AstNode* ast,
@@ -25,6 +27,10 @@ Template* Compiler::Compile(AstNode* ast,
   codegen.GenerateEpilogue();
 
   t->code->data = codegen.data;
+
+  // Copy buffered code into executable memory
+  // and guard it
+  t->code->Commit();
 
   return t;
 }
@@ -48,8 +54,49 @@ Template::~Template() {
 }
 
 
-Code::Code(uint32_t size_) {
-  size = size_;
+Code::Code() {
+#ifdef __DARWIN
+  page_size = getpagesize();
+#else
+  page_size = sysconf(_SC_PAGE_SIZE);
+#endif
+
+  size = page_size;
+  guard = NULL;
+
+  code = new char[size];
+  committed = false;
+  memset(code, 0x90, size);
+}
+
+
+Code::~Code() {
+  if (committed) {
+    if (munmap(code, static_cast<size_t>(size)) != 0) abort();
+    if (munmap(guard, static_cast<size_t>(page_size)) != 0) abort();
+  } else {
+    delete code;
+  }
+
+  char* chunk;
+  while ((chunk = data->Shift()) != NULL) delete chunk;
+  delete data;
+}
+
+
+void Code::Grow() {
+  uint32_t new_size = size << 1;
+  char* new_code = new char[new_size];
+
+  memcpy(new_code, code, size);
+  memset(new_code + size, 0x90, size);
+
+  delete code;
+  code = new_code;
+}
+
+
+void Code::Commit() {
   void* data = mmap(0,
                     size,
                     PROT_READ | PROT_WRITE | PROT_EXEC,
@@ -59,19 +106,22 @@ Code::Code(uint32_t size_) {
 
   if (data == MAP_FAILED) abort();
 
-  // Fill code with `nops`
-  memset(data, 0x90, static_cast<size_t>(size));
-
+  memcpy(data, code, size);
+  delete code;
   code = reinterpret_cast<char*>(data);
-}
 
+  // Allocate guard
+  data = mmap(code + size,
+              page_size,
+              PROT_NONE,
+              MAP_ANON | MAP_PRIVATE,
+              -1,
+              0);
+  if (data == MAP_FAILED) abort();
 
-Code::~Code() {
-  assert(munmap(code, static_cast<size_t>(size)) == 0);
+  guard = reinterpret_cast<char*>(data);
 
-  char* chunk;
-  while ((chunk = data->Shift()) != NULL) delete chunk;
-  delete data;
+  committed = true;
 }
 
 

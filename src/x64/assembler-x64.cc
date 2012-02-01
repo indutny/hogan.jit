@@ -116,19 +116,9 @@ int Assembler::PreCall(int offset, int args) {
 
 
 void Assembler::Call(const void* addr) {
-  if (Offset(addr) <= 0x7fffffff &&
-      Offset(addr) >= -0x7fffffff) {
-    // Short
-
-    emit(0xe8); // Call
-    Immediate(static_cast<const uint32_t>(Offset(addr) - 4));
-  } else {
-    // Far
-
-    MovImm(rdx, reinterpret_cast<const uint64_t>(addr));
-    emit(0xff); // Call
-    emit(0xc0 | 2 << 3 | rdx);
-  }
+  MovImm(rcx, reinterpret_cast<const uint64_t>(addr));
+  emit(0xff); // Call
+  emit(0xc0 | 2 << 3 | rcx);
 }
 
 
@@ -159,14 +149,15 @@ void Assembler::Cmp(int src, uint32_t imm) {
 
 
 void Assembler::Je(Label* lbl) {
-  emit(0x74);
-  Offset(lbl, 1);
+  emit(0x0f);
+  emit(0x84);
+  Offset(lbl, 4);
 }
 
 
 void Assembler::Jmp(Label* lbl) {
-  emit(0xeb);
-  Offset(lbl, 1);
+  emit(0xe9);
+  Offset(lbl, 4);
 }
 
 } // namespace hogan

@@ -25,17 +25,25 @@ class Compiler {
 
 class Code {
  public:
-  Code(uint32_t size_);
+  Code();
   ~Code();
 
+  void Grow();
+  void Commit();
+
   uint32_t size;
+  uint32_t page_size;
+
   char* code;
+  char* guard;
+  bool committed;
+
   Queue<char*>* data;
 };
 
 class TemplateCode : public Code {
  public:
-  TemplateCode() : Code(1024) {
+  TemplateCode() {
   }
 
   ~TemplateCode() {

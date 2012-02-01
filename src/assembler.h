@@ -26,25 +26,25 @@ class Assembler {
   };
 
   inline void Immediate(uint64_t imm) {
-    *reinterpret_cast<uint64_t*>(code->code + offset) = imm;
+    *reinterpret_cast<uint64_t*>(pos()) = imm;
     offset += sizeof(imm);
   }
 
 
   inline void Immediate(const uint32_t imm) {
-    *reinterpret_cast<uint32_t*>(code->code + offset) = imm;
+    *reinterpret_cast<uint32_t*>(pos()) = imm;
     offset += sizeof(imm);
   }
 
 
   inline void Immediate(const uint16_t imm) {
-    *reinterpret_cast<uint16_t*>(code->code + offset) = imm;
+    *reinterpret_cast<uint16_t*>(pos()) = imm;
     offset += sizeof(imm);
   }
 
 
   inline void Immediate(const uint8_t imm) {
-    *reinterpret_cast<uint8_t*>(code->code + offset) = imm;
+    *reinterpret_cast<uint8_t*>(pos()) = imm;
     offset += sizeof(imm);
   }
 
@@ -111,14 +111,13 @@ class Assembler {
     }
   }
 
-  inline int64_t Offset(const void* addr) {
-    return reinterpret_cast<int64_t>(
-        static_cast<const char*>(addr) -
-        offset - reinterpret_cast<int64_t>(code->code));
-  }
-
   inline void emit(int byte) {
     (reinterpret_cast<unsigned char*>(code->code) + offset++)[0] = byte;
+    if (offset + 16 >= code->size) code->Grow();
+  }
+
+  inline char* pos() {
+    return code->code + offset;
   }
 
   Code* code;
