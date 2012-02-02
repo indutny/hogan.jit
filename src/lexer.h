@@ -26,14 +26,27 @@ class Lexer {
     Token(TokenType type_) : type(type_), value(NULL), length(0) {
     }
 
-    Token(TokenType type_, const void* value_, uint32_t length_) : type(type_) {
+    Token(TokenType type_, const char* value_, uint32_t length_) : type(type_) {
       value = value_;
       length = length_;
+
+      // Trim non-string tokens
+      if (type != kString) {
+        // Remove spaces from start
+        while (value[0] == ' ' && length > 0) {
+          value++;
+          length--;
+        }
+        // And from end
+        while (value[length - 1] == ' ' && length > 0) {
+          length--;
+        }
+      }
     }
     ~Token() {}
 
     TokenType type;
-    const void* value;
+    const char* value;
     uint32_t length;
   };
 

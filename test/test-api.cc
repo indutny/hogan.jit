@@ -60,12 +60,21 @@ TEST_START("API test")
   delete t;
   delete out;
 
-  t = hogan.Compile("some {{adjective}} template. "
+  t = hogan.Compile("some {{  adjective   }} template. "
                      "{{#nprop}}yeah{{^nprop}}oh noes{{/nprop}}");
 
   out = t->Render(&data);
   assert(out != NULL);
   assert(strcmp("some neat template. oh noes", out) == 0);
+
+  delete out;
+  delete t;
+
+  t = hogan.Compile("some template with{{!  comments   }}.");
+
+  out = t->Render(&data);
+  assert(out != NULL);
+  assert(strcmp("some template with.", out) == 0);
 
   delete out;
   delete t;
