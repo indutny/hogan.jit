@@ -42,7 +42,10 @@ void Codegen::GenerateBlock(AstNode* node) {
       GenerateString(descendant);
       break;
      case AstNode::kProp:
-      GenerateProp(descendant);
+      GenerateProp(descendant, true);
+      break;
+     case AstNode::kRawProp:
+      GenerateProp(descendant, false);
       break;
      case AstNode::kIf:
       GenerateIf(descendant);
@@ -61,26 +64,24 @@ void Codegen::GenerateBlock(AstNode* node) {
 }
 
 
-typedef void (TemplateOutput::*PushCallback)(const char*, const size_t);
-
-
 void Codegen::GenerateString(AstNode* node) {
   PushCallback method = &TemplateOutput::Push;
 
   char* value = ToData(node);
 
-  int delta = PreCall(0, 3);
+  int delta = PreCall(0, 4);
 
   MovFromContext(rdi, -24); // out
   MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // value
   MovImm(rdx, node->length); // length
+  MovImm(rcx, TemplateOutput::kNone); // flags
   Call(*reinterpret_cast<void**>(&method));
 
   AddImm(rsp, delta);
 }
 
 
-void Codegen::GenerateProp(AstNode* node) {
+void Codegen::GenerateProp(AstNode* node, bool escape) {
   {
     PropertyCallback method = options->getString;
 
@@ -98,11 +99,12 @@ void Codegen::GenerateProp(AstNode* node) {
   {
     PushCallback method = &TemplateOutput::Push;
 
-    int delta = PreCall(8, 3);
+    int delta = PreCall(8, 4);
 
     MovFromContext(rdi, -24); // out
     Mov(rsi, rax); // result of get prop
     MovImm(rdx, 0); // let output stream determine size
+    MovImm(rcx, escape ? TemplateOutput::kEscape : TemplateOutput::kNone);
     Call(*reinterpret_cast<void**>(&method)); // push
 
     AddImm(rsp, delta);

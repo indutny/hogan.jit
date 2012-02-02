@@ -96,7 +96,7 @@ void Assembler::Xor(int dst, int src) {
 int Assembler::PreCall(int offset, int args) {
   int delta = 16 - (offset + args * 4) % 16;
 
-  if (delta == 16) return 0;
+  if (delta == 16) return args * 4;
   SubImm(esp, delta);
 
   return delta + args * 4;

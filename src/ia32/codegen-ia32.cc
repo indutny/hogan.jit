@@ -36,7 +36,10 @@ void Codegen::GenerateBlock(AstNode* node) {
       GenerateString(descendant);
       break;
      case AstNode::kProp:
-      GenerateProp(descendant);
+      GenerateProp(descendant, true);
+      break;
+     case AstNode::kRawProp:
+      GenerateProp(descendant, false);
       break;
      case AstNode::kIf:
       GenerateIf(descendant);
@@ -63,17 +66,15 @@ void Codegen::GenerateEpilogue() {
 }
 
 
-typedef void (TemplateOutput::*PushCallback)(const char*, const size_t);
-
-
 void Codegen::GenerateString(AstNode* node) {
   PushCallback method = &TemplateOutput::Push;
 
   char* value = ToData(node);
 
-  int align = PreCall(0, 3);
+  int align = PreCall(0, 4);
 
   MovFromContext(eax, -12);
+  PushImm(TemplateOutput::kNone);
   PushImm(node->length); // length
   PushImm(reinterpret_cast<const uint64_t>(value)); // str to push
   Push(eax); // out
@@ -88,7 +89,7 @@ void Codegen::GenerateString(AstNode* node) {
 typedef size_t (*StrLenType)(const char*);
 
 
-void Codegen::GenerateProp(AstNode* node) {
+void Codegen::GenerateProp(AstNode* node, bool escape) {
   {
     PropertyCallback method = options->getString;
 
@@ -108,8 +109,9 @@ void Codegen::GenerateProp(AstNode* node) {
   {
     PushCallback method = &TemplateOutput::Push;
 
-    int align = PreCall(4, 3);
+    int align = PreCall(4, 4);
 
+    PushImm(escape ? TemplateOutput::kEscape : TemplateOutput::kNone);
     PushImm(0); // length
     Push(eax); // value
     MovFromContext(eax, -12);
@@ -213,8 +215,10 @@ void Codegen::GenerateIf(AstNode* node) {
   AddImm(esp, delta);
 
   Pop(eax);
+
   Pop(ecx);
 
+  // Check if we reached end of loop
   Cmp(eax, 0);
   Je(&EndIf);
 

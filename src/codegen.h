@@ -24,10 +24,13 @@ class Codegen : public Assembler {
 
   void GenerateBlock(AstNode* node);
   void GenerateString(AstNode* node);
-  void GenerateProp(AstNode* node);
+  void GenerateProp(AstNode* node, bool escape);
   void GenerateIf(AstNode* node);
   void GeneratePartial(AstNode* node);
 
+  typedef void (TemplateOutput::*PushCallback)(const char*,
+                                               const size_t,
+                                               const size_t);
   typedef void (*InvokePartialType)(Template*, void*, TemplateOutput*);
   static void InvokePartial(Template* t, void* obj, TemplateOutput* out) {
     t->code->AsFunction()(obj, out);

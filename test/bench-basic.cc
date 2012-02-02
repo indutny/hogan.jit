@@ -30,17 +30,35 @@ TEST_START("bench basic")
   }
   BENCH_END(compile, cnum)
 
-  t = hogan.Compile("some {{adjective}} template.");
-
   const int num = 12000000;
 
-  BENCH_START(basic, num)
+  t = hogan.Compile("some {{{adjective}}} template.");
+  BENCH_START(unescaped, num)
   for (int i = 0; i < num; i++) {
     out = t->Render(&data);
     delete out;
   }
-  BENCH_END(basic, num)
+  BENCH_END(unescaped, num)
+  delete t;
 
+  t = hogan.Compile("some {{adjective}} template.");
+  BENCH_START(escaped, num)
+  for (int i = 0; i < num; i++) {
+    out = t->Render(&data);
+    delete out;
+  }
+  BENCH_END(escaped, num)
+  delete t;
+
+  adjective = "<b>adjective</b>";
+
+  t = hogan.Compile("some {{adjective}} template.");
+  BENCH_START(escaped_html, num)
+  for (int i = 0; i < num; i++) {
+    out = t->Render(&data);
+    delete out;
+  }
+  BENCH_END(escaped_html, num)
   delete t;
 
 TEST_END("bench basic")

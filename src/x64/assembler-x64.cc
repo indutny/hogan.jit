@@ -22,14 +22,14 @@ void Assembler::Pop(int reg) {
 
 
 void Assembler::Mov(int dst, int src) {
-  emit(0x48); // REX prefix
+  emit(0x48); // REX.W prefix
   emit(0x8b); // mov
   emit(0xc0 | dst << 3 | src);
 }
 
 
 void Assembler::MovToContext(uint8_t offset, int src) {
-  emit(0x48); // REX prefix
+  emit(0x48); // REX.W prefix
   emit(0x89); // mov [ebp+offset], src
   emit(0x45 | src << 3); // modrm
   Immediate(offset);
@@ -45,8 +45,8 @@ void Assembler::MovFromContext(int dst, uint8_t offset) {
 
 
 void Assembler::MovImm(int dst, uint64_t imm) {
-  emit(0x48); // REX prefix
-  emit(0xb8 | dst); // mov
+  emit(0x48 | (dst >> 3) & 1); // REX.W + modrm extension prefix
+  emit(0xb8 | dst & 7); // mov
 
   Immediate(imm);
 }
@@ -116,9 +116,10 @@ int Assembler::PreCall(int offset, int args) {
 
 
 void Assembler::Call(const void* addr) {
-  MovImm(rcx, reinterpret_cast<const uint64_t>(addr));
+  MovImm(r10, reinterpret_cast<const uint64_t>(addr));
+  emit(0x40 | (r10 >> 3) & 1); // RX + modrm extension
   emit(0xff); // Call
-  emit(0xc0 | 2 << 3 | rcx);
+  emit(0xc0 | 2 << 3 | r10 & 7);
 }
 
 

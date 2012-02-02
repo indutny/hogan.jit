@@ -1,13 +1,19 @@
 #include "test.h"
 
 static const char* adjective = "neat";
+static const char* html = "&<>'\"";
 
 class Object {
  public:
   static const void* GetString(void* obj, const char* key) {
-    assert(strcmp(key, "adjective") == 0);
-
-    return reinterpret_cast<const void*>(adjective);
+    if (strcmp(key, "adjective") == 0) {
+      return reinterpret_cast<const void*>(adjective);
+    } else if (strcmp(key, "html") == 0) {
+      return reinterpret_cast<const void*>(html);
+    } else {
+      assert(0 && "unexpected");
+      return NULL;
+    }
   }
   static const void* GetObject(void* obj, const char* key) {
     if (strcmp(key, "prop") == 0) {
@@ -75,6 +81,24 @@ TEST_START("API test")
   out = t->Render(&data);
   assert(out != NULL);
   assert(strcmp("some template with.", out) == 0);
+
+  delete out;
+  delete t;
+
+  t = hogan.Compile("escaped value {{html}}.");
+
+  out = t->Render(&data);
+  assert(out != NULL);
+  assert(strcmp("escaped value &amp;&lt;&gt;&apos;&quot;.", out) == 0);
+
+  delete out;
+  delete t;
+
+  t = hogan.Compile("escaped value {{{html}}}.");
+
+  out = t->Render(&data);
+  assert(out != NULL);
+  assert(strcmp("escaped value &<>'\".", out) == 0);
 
   delete out;
   delete t;
