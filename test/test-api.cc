@@ -98,10 +98,19 @@ TEST_START("API test")
 
   out = t->Render(&data);
   assert(out != NULL);
-  fprintf(stdout, "%s\n", out);
   assert(strcmp("escaped value &<>'\".", out) == 0);
 
   delete out;
   delete t;
+
+  t = hogan.Compile("escaped value {{& html }}.");
+
+  out = t->Render(&data);
+  assert(out != NULL);
+  assert(strcmp("escaped value &<>'\".", out) == 0);
+
+  delete out;
+  delete t;
+
 
 TEST_END("API test")

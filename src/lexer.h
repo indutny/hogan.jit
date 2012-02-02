@@ -117,7 +117,7 @@ class Lexer {
 
     // '}}}' for kRawProp
     if (type == Token::kRawProp &&
-        (offset + 3 >= length || source[offset + 3] != '}')) {
+        (offset + 2 >= length || source[offset + 2] != '}')) {
       return new Token(Token::kEnd);
     }
 
