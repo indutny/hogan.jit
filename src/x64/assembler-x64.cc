@@ -45,8 +45,8 @@ void Assembler::MovFromContext(int dst, uint8_t offset) {
 
 
 void Assembler::MovImm(int dst, uint64_t imm) {
-  emit(0x48 | (dst >> 3) & 1); // REX.W + modrm extension prefix
-  emit(0xb8 | dst & 7); // mov
+  emit(0x48 | ((dst >> 3) & 1)); // REX.W + modrm extension prefix
+  emit(0xb8 | (dst & 7)); // mov
 
   Immediate(imm);
 }
@@ -117,9 +117,9 @@ int Assembler::PreCall(int offset, int args) {
 
 void Assembler::Call(const void* addr) {
   MovImm(r10, reinterpret_cast<const uint64_t>(addr));
-  emit(0x40 | (r10 >> 3) & 1); // RX + modrm extension
+  emit(0x40 | ((r10 >> 3) & 1)); // RX + modrm extension
   emit(0xff); // Call
-  emit(0xc0 | 2 << 3 | r10 & 7);
+  emit(0xc0 | 2 << 3 | (r10 & 7));
 }
 
 
