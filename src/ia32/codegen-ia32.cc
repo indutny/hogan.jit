@@ -117,7 +117,8 @@ void Codegen::GenerateProp(AstNode* node, bool escape) {
 
     int align = PreCall(4, 4);
 
-    PushImm(escape ? TemplateOutput::kEscape : TemplateOutput::kNone);
+    PushImm((escape ? TemplateOutput::kEscape : TemplateOutput::kNone) |
+            TemplateOutput::kAllocated);
     PushImm(0); // length
     Push(eax); // value
     MovFromContext(eax, -12);

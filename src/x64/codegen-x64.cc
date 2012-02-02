@@ -109,7 +109,8 @@ void Codegen::GenerateProp(AstNode* node, bool escape) {
     MovFromContext(rdi, -24); // out
     Mov(rsi, rax); // result of get prop
     MovImm(rdx, 0); // let output stream determine size
-    MovImm(rcx, escape ? TemplateOutput::kEscape : TemplateOutput::kNone);
+    MovImm(rcx, (escape ? TemplateOutput::kEscape : TemplateOutput::kNone) |
+                TemplateOutput::kAllocated);
     Call(*reinterpret_cast<void**>(&method)); // push
 
     AddImm(rsp, delta);

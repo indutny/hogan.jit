@@ -1,10 +1,17 @@
 #include "test.h"
 
-static const char* adjective = "fast";
+static bool html = false;
+static char* adjective;
 
 class Object {
  public:
   static const void* GetString(void* obj, const char* key) {
+    adjective = new char[100];
+    if (!html) {
+      memcpy(adjective, "neat", 5);
+    } else {
+      memcpy(adjective, "<b>adjective</b>", 17);
+    }
     return reinterpret_cast<const void*>(adjective);
   }
 };
@@ -50,7 +57,7 @@ TEST_START("bench basic")
   BENCH_END(escaped, num)
   delete t;
 
-  adjective = "<b>adjective</b>";
+  html = true;
 
   t = hogan.Compile("some {{adjective}} template.");
   BENCH_START(escaped_html, num)

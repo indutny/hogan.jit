@@ -1,15 +1,17 @@
 #include "test.h"
 
-static const char* adjective = "neat";
-static const char* html = "&<>'\"";
+static const char* arrRef = "neat";
 
 class Object {
  public:
   static const void* GetString(void* obj, const char* key) {
+    char* value = new char[10];
     if (strcmp(key, "adjective") == 0) {
-      return reinterpret_cast<const void*>(adjective);
+      memcpy(value, "neat", 5);
+      return value;
     } else if (strcmp(key, "html") == 0) {
-      return reinterpret_cast<const void*>(html);
+      memcpy(value, "&<>'\"", 6);
+      return value;
     } else {
       assert(0 && "unexpected");
       return NULL;
@@ -19,7 +21,7 @@ class Object {
     if (strcmp(key, "prop") == 0) {
       return obj;
     } else if (strcmp(key, "arrprop") == 0) {
-      return reinterpret_cast<const void*>(adjective);
+      return reinterpret_cast<const void*>(arrRef);
     } else {
       return NULL;
     }
@@ -30,7 +32,7 @@ class Object {
   }
 
   static int IsArray(void* obj) {
-    return obj == reinterpret_cast<const void*>(adjective);
+    return obj == reinterpret_cast<const void*>(arrRef);
   }
 };
 
