@@ -3,11 +3,24 @@
 
 namespace hogan {
 
+//
+// A lot of typedefs and classes here
+//
+
 class Template;
 class TemplateCode;
 class Compiler;
 class Codegen;
 class Options;
+
+typedef const void* (*PropertyCallback)(void* obj, const char* key);
+typedef const void* (*NumericPropertyCallback)(void* obj, const int index);
+typedef int (*IsArrayCallback)(void* obj);
+typedef Template* (*PartialCallback)(Template* tpl, const char* name);
+
+//
+// Actual API
+//
 
 class Hogan {
  public:
@@ -15,14 +28,11 @@ class Hogan {
   ~Hogan();
 
   Template* Compile(const char* source);
+
  private:
   Options* options_;
 };
 
-typedef const void* (*PropertyCallback)(void* obj, const char* key);
-typedef const void* (*NumericPropertyCallback)(void* obj, const int index);
-typedef int (*IsArrayCallback)(void* obj);
-typedef Template* (*PartialCallback)(Template* tpl, const char* name);
 
 class Options {
  public:
