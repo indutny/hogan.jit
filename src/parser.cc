@@ -19,6 +19,11 @@ void Parser::Parse() {
       SetValue(tok);
       Leave(AstNode::kProp);
       break;
+     case Lexer::Token::kRawProp:
+      Enter(AstNode::kRawProp);
+      SetValue(tok);
+      Leave(AstNode::kRawProp);
+      break;
      case Lexer::Token::kPartial:
       Enter(AstNode::kPartial);
       SetValue(tok);
@@ -41,6 +46,7 @@ void Parser::Parse() {
      default:
       assert(false && "Unexpected lexer token");
     }
+
     delete tok;
     tok = Consume();
   }

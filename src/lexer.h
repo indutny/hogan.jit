@@ -13,6 +13,7 @@ class Lexer {
     enum TokenType {
       kString,
       kProp,
+      kRawProp,
       kIf,
       kElse,
       kEndIf,
@@ -66,21 +67,23 @@ class Lexer {
 
     // Handle modificators: '#', '^', '/'
     Token::TokenType type;
-    if (source[offset] == '#') {
-      type = Token::kIf;
+    do {
+      if (source[offset] == '#') {
+        type = Token::kIf;
+      } else if (source[offset] == '^') {
+        type = Token::kElse;
+      } else if (source[offset] == '/') {
+        type = Token::kEndIf;
+      } else if (source[offset] == '>') {
+        type = Token::kPartial;
+      } else if (source[offset] == '{') {
+        type = Token::kRawProp;
+      } else {
+        type = Token::kProp;
+        break;
+      }
       offset++;
-    } else if (source[offset] == '^') {
-      type = Token::kElse;
-      offset++;
-    } else if (source[offset] == '/') {
-      type = Token::kEndIf;
-      offset++;
-    } else if (source[offset] == '>') {
-      type = Token::kPartial;
-      offset++;
-    } else {
-      type = Token::kProp;
-    }
+    } while(0);
 
     // Parse until '}}'
     uint32_t start = offset;
@@ -93,9 +96,21 @@ class Lexer {
     if (offset + 2 >= length) return new Token(Token::kEnd);
     offset++;
 
-    // Skip '}}'
+    // '}}}' for kRawProp
+    if (type == Token::kRawProp &&
+        (offset + 3 >= length || source[offset + 3] != '}')) {
+      return new Token(Token::kEnd);
+    }
+
     Token* prop = new Token(type, source + start, offset - start);
-    offset += 2;
+
+    if (type != Token::kRawProp) {
+      // Skip '}}'
+      offset += 2;
+    } else {
+      // Skip '}}}' for kRawProp
+      offset += 3;
+    }
 
     return prop;
   }

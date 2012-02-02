@@ -14,6 +14,7 @@ class AstNode {
     kBlock,
     kString,
     kProp,
+    kRawProp,
     kIf,
     kPartial
   };
