@@ -14,10 +14,11 @@ void Codegen::GeneratePrologue() {
   Push(rbp);
   Mov(rbp, rsp);
 
-  // Reserve space for 3 pointers
+  // Reserve space for 4 pointers
   // and align stack
-  SubImm(rsp, 24 + 8);
+  SubImm(rsp, 32);
 
+  MovToContext(-32, rcx); // store `template`
   MovToContext(-24, rsi); // store `out`
   MovToContext(-16, rdi); // store `obj`
   Xor(rax, rax); // nullify return value
@@ -96,6 +97,10 @@ void Codegen::GenerateProp(AstNode* node, bool escape) {
     AddImm(rsp, delta);
   }
 
+  Label skipPush;
+  Cmp(rax, 0);
+  Je(&skipPush);
+
   {
     PushCallback method = &TemplateOutput::Push;
 
@@ -109,6 +114,8 @@ void Codegen::GenerateProp(AstNode* node, bool escape) {
 
     AddImm(rsp, delta);
   }
+
+  Bind(&skipPush);
 }
 
 
@@ -239,11 +246,16 @@ void Codegen::GeneratePartial(AstNode* node) {
 
     int delta = PreCall(0, 1);
 
-    MovImm(rdi, reinterpret_cast<const uint64_t>(value)); // partial name
+    MovFromContext(rdi, -24); // template
+    MovImm(rsi, reinterpret_cast<const uint64_t>(value)); // partial name
     Call(*reinterpret_cast<void**>(&method));
 
     AddImm(rsp, delta);
   }
+
+  Label skipPush;
+  Cmp(rax, 0);
+  Je(&skipPush);
 
   // Invoke partial
   {
@@ -257,6 +269,8 @@ void Codegen::GeneratePartial(AstNode* node) {
 
     AddImm(rsp, delta);
   }
+
+  Bind(&skipPush);
 }
 
 } // namespace hogan

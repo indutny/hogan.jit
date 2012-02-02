@@ -16,7 +16,8 @@ class Template;
 class TemplateCode;
 
 typedef size_t (*TemplateFunction)(void* obj,
-                                   TemplateOutput* out);
+                                   TemplateOutput* out,
+                                   Template* tpl);
 
 class Compiler {
  public:

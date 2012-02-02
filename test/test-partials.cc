@@ -2,7 +2,7 @@
 
 static Template* partial = NULL;
 
-Template* GetPartial(const char* name) {
+Template* GetPartial(Template* t, const char* name) {
   assert(strcmp(name, "partial") == 0);
   return partial;
 };

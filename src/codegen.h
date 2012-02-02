@@ -33,7 +33,7 @@ class Codegen : public Assembler {
                                                const size_t);
   typedef void (*InvokePartialType)(Template*, void*, TemplateOutput*);
   static void InvokePartial(Template* t, void* obj, TemplateOutput* out) {
-    t->code->AsFunction()(obj, out);
+    t->code->AsFunction()(obj, out, t);
   }
 
   inline char* ToData(AstNode* node) {

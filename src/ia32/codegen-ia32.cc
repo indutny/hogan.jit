@@ -14,13 +14,15 @@ void Codegen::GeneratePrologue() {
   Push(ebp);
   Mov(ebp, esp);
 
-  // Reserve space for 3 pointers
-  SubImm(esp, 12 + 12);
+  // Reserve space for 4 pointers
+  SubImm(esp, 16 + 8);
 
   MovFromContext(eax, 8); // get `obj`
   MovToContext(-8, eax); // store `obj`
   MovFromContext(eax, 12); // get `out`
   MovToContext(-12, eax); // store `out`
+  MovFromContext(eax, 16); // get `template`
+  MovToContext(-16, eax); // store `template`
 
   Xor(eax, eax); // nullify return value
   MovToContext(-4, eax);
@@ -106,6 +108,10 @@ void Codegen::GenerateProp(AstNode* node, bool escape) {
     AddImm(esp, align);
   }
 
+  Label skipPush;
+  Cmp(eax, 0);
+  Je(&skipPush);
+
   {
     PushCallback method = &TemplateOutput::Push;
 
@@ -120,6 +126,8 @@ void Codegen::GenerateProp(AstNode* node, bool escape) {
 
     AddImm(esp, align); // unalign stack
   }
+
+  Bind(&skipPush);
 }
 
 
@@ -253,13 +261,19 @@ void Codegen::GeneratePartial(AstNode* node) {
 
     char* value = ToData(node);
 
-    int delta = PreCall(0, 1);
+    int delta = PreCall(0, 2);
 
     PushImm(reinterpret_cast<const uint64_t>(value)); // partial name
+    MovFromContext(eax, 16); // template
+    Push(eax);
     Call(*reinterpret_cast<void**>(&method));
 
     AddImm(esp, delta);
   }
+
+  Label skipPush;
+  Cmp(eax, 0);
+  Je(&skipPush);
 
   // Invoke partial
   {
@@ -275,6 +289,8 @@ void Codegen::GeneratePartial(AstNode* node) {
 
     AddImm(esp, delta);
   }
+
+  Bind(&skipPush);
 }
 
 } // namespace hogan

@@ -38,7 +38,7 @@ Template* Compiler::Compile(AstNode* ast,
 
 char* Template::Render(void* obj) {
   TemplateOutput out;
-  code->AsFunction()(obj, &out);
+  code->AsFunction()(obj, &out, this);
 
   return out.Join();
 };
