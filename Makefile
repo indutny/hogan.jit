@@ -62,4 +62,7 @@ test: $(TESTS)
 test/%: test/%.cc hogan.a
 	$(CXX) $(CPPFLAGS) $< -o $@ hogan.a
 
+clean:
+	rm -f $(OBJS) hogan.a
+
 .PHONY: all test
