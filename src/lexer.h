@@ -14,10 +14,12 @@ class Lexer {
       kString,
       kProp,
       kRawProp,
+      kRawTaggedProp,
       kIf,
       kElse,
       kEndIf,
       kPartial,
+      kComment,
       kEnd
     };
 
@@ -76,8 +78,12 @@ class Lexer {
         type = Token::kEndIf;
       } else if (source[offset] == '>') {
         type = Token::kPartial;
+      } else if (source[offset] == '!') {
+        type = Token::kComment;
       } else if (source[offset] == '{') {
         type = Token::kRawProp;
+      } else if (source[offset] == '&') {
+        type = Token::kRawTaggedProp;
       } else {
         type = Token::kProp;
         break;
@@ -102,7 +108,13 @@ class Lexer {
       return new Token(Token::kEnd);
     }
 
-    Token* prop = new Token(type, source + start, offset - start);
+    // kRawTaggedProp is essentially the same as kRawProp
+    Token* prop;
+    if (type != Token::kRawTaggedProp) {
+      prop = new Token(type, source + start, offset - start);
+    } else {
+      prop = new Token(Token::kRawProp, source + start, offset - start);
+    }
 
     if (type != Token::kRawProp) {
       // Skip '}}'

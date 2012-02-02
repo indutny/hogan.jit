@@ -43,6 +43,8 @@ void Parser::Parse() {
       Leave(AstNode::kBlock);
       Leave(AstNode::kIf);
       break;
+     case Lexer::Token::kComment:
+      break;
      default:
       assert(false && "Unexpected lexer token");
     }
