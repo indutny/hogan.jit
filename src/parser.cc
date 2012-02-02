@@ -10,24 +10,16 @@ void Parser::Parse() {
   while (tok->type != Lexer::Token::kEnd) {
     switch (tok->type) {
      case Lexer::Token::kString:
-      Enter(AstNode::kString);
-      SetValue(tok);
-      Leave(AstNode::kString);
+      Insert(AstNode::kString, tok);
       break;
      case Lexer::Token::kProp:
-      Enter(AstNode::kProp);
-      SetValue(tok);
-      Leave(AstNode::kProp);
+      Insert(AstNode::kProp, tok);
       break;
      case Lexer::Token::kRawProp:
-      Enter(AstNode::kRawProp);
-      SetValue(tok);
-      Leave(AstNode::kRawProp);
+      Insert(AstNode::kRawProp, tok);
       break;
      case Lexer::Token::kPartial:
-      Enter(AstNode::kPartial);
-      SetValue(tok);
-      Leave(AstNode::kPartial);
+      Insert(AstNode::kPartial, tok);
       break;
      case Lexer::Token::kIf:
       Enter(AstNode::kIf);

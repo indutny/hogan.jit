@@ -86,6 +86,12 @@ class Parser : Lexer {
     current = current->GetAscendant();
   }
 
+  void Insert(AstNode::AstNodeType type, const Lexer::Token* token) {
+    Enter(type);
+    SetValue(token);
+    Leave(type);
+  }
+
  private:
   AstNode* ast;
   AstNode* current;
