@@ -34,6 +34,7 @@ class TemplateOutput {
                             size_t* escaped_length) {
     size_t i;
 
+    // Fast case: no symbols to escape, just return NULL
     for (i = 0; i < length; i++) {
       if (value[i] == '&' || value[i] == '<' || value[i] == '>' ||
           value[i] == '"' || value[i] == '\'') {
@@ -42,6 +43,8 @@ class TemplateOutput {
     }
     if (i == length) return NULL;
 
+
+    // Slow case: create new string and insert escaped symbols in it
     size_t newlen = length << 1;
     char* escaped = new char[newlen];
 
@@ -50,6 +53,7 @@ class TemplateOutput {
       // &quot; - is 6 bytes in length
       // be sure that we have enough space to encode it
       if (offset + 6 >= newlen) {
+        // If not - double size of buffer
         char* tmp = new char[newlen << 1];
         memcpy(tmp, escaped, offset);
         newlen = newlen << 1;
