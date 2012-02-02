@@ -12,7 +12,7 @@ const int initialCapacity = 128;
 class TemplateOutput {
  public:
   TemplateOutput() {
-    chunks = new size_t[initialCapacity << 1];
+    chunks = new size_t[initialCapacity << 2];
     capacity = initialCapacity;
     total = 0;
     items = 0;
@@ -32,7 +32,7 @@ class TemplateOutput {
     chunks = new_chunks;
 
     // Increase capactiy and size
-    capacity += items >> 1;
+    capacity += items >> 2;
   }
 
   void Push(const char* chunk, const size_t size) {
@@ -40,7 +40,7 @@ class TemplateOutput {
     chunks[items] = reinterpret_cast<const size_t>(chunk);
     chunks[items + 1] = size_;
 
-    items += 2;
+    items += 4;
     capacity--;
     total += size_;
     Realloc();
@@ -51,7 +51,7 @@ class TemplateOutput {
     result[total] = 0;
 
     off_t offset = 0;
-    for (size_t i = 0; i < items; i += 2) {
+    for (size_t i = 0; i < items; i += 4) {
       size_t size = chunks[i + 1];
       memcpy(result + offset,
              reinterpret_cast<char*>(chunks[i]),
