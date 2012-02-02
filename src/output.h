@@ -126,7 +126,7 @@ class TemplateOutput {
     size_t size_ = size == 0 ? strlen(chunk) : size;
     size_t flags_ = flags;
 
-    if (flags_ & kEscape == kEscape) {
+    if ((flags_ & kEscape) == kEscape) {
       const char* tmp;
       tmp = Escape(value, size_, &size_);
       if (tmp != NULL) {
