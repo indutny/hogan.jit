@@ -68,12 +68,15 @@ class Assembler {
   void Mov(int dst, int src);
   void MovToContext(uint8_t offset, int src);
   void MovFromContext(int dst, uint8_t offset);
+  void MovToStack(uint8_t offset, int src);
+  void MovFromStack(int dst, uint8_t offset);
   void MovImm(int dst, uint64_t imm);
   void AddImm(int dst, uint8_t imm);
   void AddImmToContext(int offset, uint32_t imm);
   void AddToContext(int offset, int src);
   void SubImm(int dst, uint8_t imm);
   void Inc(int dst);
+  void IncStack(uint8_t offset);
   void Dec(int dst);
   void Xor(int dst, int src);
   int PreCall(int offset, int args);

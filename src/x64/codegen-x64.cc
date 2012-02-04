@@ -164,8 +164,7 @@ void Codegen::GenerateIf(AstNode* node) {
   }
 
   // Restore obj pointer
-  Pop(rdi);
-  Push(rax);
+  MovFromStack(rdi, 0);
 
   // Index & Length (0 at start)
   PushImm(0);
@@ -186,27 +185,19 @@ void Codegen::GenerateIf(AstNode* node) {
   }
 
   // Replace the one on stack
-  Pop(rdi);
-  Push(rax);
+  MovToStack(0, rax);
 
   // Start of loop
-  Label Iterate;
+  Label Iterate, EndIterate;
   Bind(&Iterate);
 
   // Get item at index
   {
     NumericPropertyCallback method = options->at;
 
-    Pop(rcx);
-    Pop(rax);
-    Pop(rdi);
-
-    Mov(rsi, rax);
-    Inc(rax);
-
-    Push(rdi);
-    Push(rax);
-    Push(rcx);
+    MovFromStack(rsi, 8);
+    MovFromStack(rdi, 16);
+    IncStack(8);
 
     int delta = PreCall(24, 2);
 
@@ -226,26 +217,25 @@ void Codegen::GenerateIf(AstNode* node) {
 
   AddImm(rsp, delta);
 
-  Pop(rcx);
-  Pop(rax);
-  Pop(rdi);
+  MovFromStack(rcx, 0);
+  MovFromStack(rax, 8);
 
   Cmp(rax, rcx);
-  Je(&EndIf);
-
-  // Store parent and loop index
-  Push(rdi);
-  Push(rax);
-  Push(rcx);
+  Je(&EndIterate);
 
   // And continue iterating
   Jmp(&Iterate);
 
+  Bind(&EndIterate);
+
+  // Cleanup loop data
+  AddImm(rsp, 24);
+
+  Jmp(&EndIf);
+
   Bind(&Else);
 
   if (else_block != NULL) GenerateBlock(else_block);
-  Jmp(&EndIf);
-
   Bind(&EndIf);
 
   Pop(rdi);

@@ -179,8 +179,7 @@ void Codegen::GenerateIf(AstNode* node) {
   }
 
   // Store reference to object into ecx
-  Pop(ecx);
-  Push(eax);
+  MovFromStack(ecx, 0);
 
   // Offset and length
   PushImm(0);
@@ -203,28 +202,19 @@ void Codegen::GenerateIf(AstNode* node) {
   }
 
   // Replace length
-  Pop(ecx);
-  Push(eax);
+  MovToStack(0, eax);
 
   // Start of loop
-  Label Iterate;
+  Label Iterate, EndIterate;
   Bind(&Iterate);
 
   // Get item at index
   {
     NumericPropertyCallback method = options->at;
 
-    Pop(edx);
-    Pop(eax);
-    Pop(ecx);
-
-    Inc(eax);
-
-    Push(ecx);
-    Push(eax);
-    Push(edx);
-
-    Dec(eax);
+    MovFromStack(eax, 4);
+    MovFromStack(ecx, 8);
+    IncStack(4);
 
     int delta = PreCall(12, 2);
 
@@ -244,26 +234,26 @@ void Codegen::GenerateIf(AstNode* node) {
   GenerateBlock(main_block);
   AddImm(esp, delta);
 
-  Pop(edx);
-  Pop(eax);
-  Pop(ecx);
+  MovFromStack(eax, 4);
+  MovFromStack(ecx, 0);
 
   // Check if we reached end of loop
-  Cmp(eax, edx);
-  Je(&EndIf);
-
-  // Store parent and loop index/length
-  Push(ecx);
-  Push(eax);
-  Push(edx);
+  Cmp(eax, ecx);
+  Je(&EndIterate);
 
   // And continue iterating
   Jmp(&Iterate);
 
+  Bind(&EndIterate);
+
+  // Cleanup loop data
+  AddImm(esp, 12);
+
+  Jmp(&EndIf);
+
   Bind(&Else);
 
   if (else_block != NULL) GenerateBlock(else_block);
-  Jmp(&EndIf);
 
   Bind(&EndIf);
 

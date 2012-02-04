@@ -41,6 +41,22 @@ void Assembler::MovFromContext(int dst, uint8_t offset) {
 }
 
 
+void Assembler::MovToStack(uint8_t offset, int src) {
+  emit(0x89); // mov [esp+offset], src
+  emit(0x44 | src << 3); // modrm
+  emit(0x24); // sib
+  Immediate(offset);
+}
+
+
+void Assembler::MovFromStack(int dst, uint8_t offset) {
+  emit(0x8b); // mov dst, [esp+offset]
+  emit(0x44 | dst << 3); // modrm
+  emit(0x24); // sib
+  Immediate(offset);
+}
+
+
 void Assembler::MovImm(int dst, uint64_t imm) {
   emit(0xb8 | dst); // mov
 
@@ -84,6 +100,14 @@ void Assembler::SubImm(int dst, uint8_t imm) {
 void Assembler::Inc(int dst) {
   emit(0xff); // inc
   emit(0xc0 | dst << 3);
+}
+
+
+void Assembler::IncStack(uint8_t offset) {
+  emit(0xff); // inc
+  emit(0x44); // modrm
+  emit(0x24); // sib
+  Immediate(static_cast<uint8_t>(offset));
 }
 
 
