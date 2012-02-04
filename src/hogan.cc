@@ -10,21 +10,12 @@ namespace hogan {
 Options::Options() {
   getString = NULL;
   getObject = NULL;
+
   at = NULL;
   isArray = NULL;
-  getPartial = NULL;
-}
+  arrayLength = NULL;
 
-Options::Options(PropertyCallback getString_,
-                 PropertyCallback getObject_,
-                 NumericPropertyCallback at_,
-                 IsArrayCallback isArray_,
-                 PartialCallback getPartial_) {
-  getString = getString_;
-  getObject = getObject_;
-  at = at_;
-  isArray = isArray_;
-  getPartial = getPartial_;
+  getPartial = NULL;
 }
 
 Hogan::Hogan(Options* options) {

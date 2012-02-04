@@ -82,8 +82,14 @@ void Assembler::SubImm(int dst, uint8_t imm) {
 
 
 void Assembler::Inc(int dst) {
-  emit(0xff); // xor
+  emit(0xff); // inc
   emit(0xc0 | dst << 3);
+}
+
+
+void Assembler::Dec(int dst) {
+  emit(0xff); // dec
+  emit(0xc0 | dst << 3 | 1 /* dec opcode */);
 }
 
 
@@ -125,13 +131,19 @@ void Assembler::Return(uint16_t bytes) {
 }
 
 
-void Assembler::Cmp(int src, uint32_t imm) {
+void Assembler::CmpImm(int src, uint32_t imm) {
   if (src == eax) {
     emit(0x3d);
     Immediate(imm);
   } else {
     assert(false && "Not implemented yet!");
   }
+}
+
+
+void Assembler::Cmp(int src, int dst) {
+  emit(0x39);
+  emit(0xc0 | src << 3 | dst);
 }
 
 

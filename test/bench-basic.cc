@@ -6,7 +6,7 @@ static char* adjective;
 class Object {
  public:
   static const void* GetString(void* obj, const char* key) {
-    adjective = new char[100];
+    adjective = new char[17];
     if (!html) {
       memcpy(adjective, "neat", 5);
     } else {
@@ -17,11 +17,10 @@ class Object {
 };
 
 TEST_START("bench basic")
-  Options options(Object::GetString,
-                  NULL,
-                  NULL,
-                  NULL,
-                  NULL);
+  Options options;
+
+  options.getString = Object::GetString;
+
   Hogan hogan(&options);
 
   Object data;

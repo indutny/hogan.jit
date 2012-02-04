@@ -28,20 +28,28 @@ class Object {
   }
 
   static const void* At(void* obj, const int index) {
-    return index < 3 ? obj : NULL;
+    return obj;
   }
 
   static int IsArray(void* obj) {
     return obj == reinterpret_cast<const void*>(arrRef);
   }
+
+
+  static int ArrayLength(void* obj) {
+    return 3;
+  }
 };
 
 TEST_START("API test")
-  Options options(Object::GetString,
-                  Object::GetObject,
-                  Object::At,
-                  Object::IsArray,
-                  NULL);
+  Options options;
+
+  options.getString = Object::GetString;
+  options.getObject = Object::GetObject;
+  options.at = Object::At;
+  options.isArray = Object::IsArray;
+  options.arrayLength = Object::ArrayLength;
+
   Hogan hogan(&options);
 
   Object data;

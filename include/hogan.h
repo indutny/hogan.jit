@@ -36,17 +36,15 @@ class Hogan {
 
 class Options {
  public:
-  Options(PropertyCallback getString_,
-          PropertyCallback getObject_,
-          NumericPropertyCallback at_,
-          IsArrayCallback isArray_,
-          PartialCallback getPartial_);
   Options();
 
   PropertyCallback getString;
   PropertyCallback getObject;
-  NumericPropertyCallback at;
+
   IsArrayCallback isArray;
+  IsArrayCallback arrayLength;
+  NumericPropertyCallback at;
+
   PartialCallback getPartial;
 };
 

@@ -74,12 +74,14 @@ class Assembler {
   void AddToContext(int offset, int src);
   void SubImm(int dst, uint8_t imm);
   void Inc(int dst);
+  void Dec(int dst);
   void Xor(int dst, int src);
   int PreCall(int offset, int args);
   void Call(const void* addr);
   void Leave();
   void Return(uint16_t bytes);
-  void Cmp(int src, uint32_t imm);
+  void CmpImm(int src, uint32_t imm);
+  void Cmp(int src, int dst);
   void Je(Label* lbl);
   void Jmp(Label* lbl);
 

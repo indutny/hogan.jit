@@ -7,20 +7,25 @@ class Object {
   }
 
   static const void* At(void* obj, const int index) {
-    return index < 10000 ? obj : NULL;
+    return obj;
   }
 
   static int IsArray(void* obj) {
     return true;
   }
+
+  static int ArrayLength(void* obj) {
+    return 10000;
+  }
 };
 
 TEST_START("Template output reallocation")
-  Options options(NULL,
-                  Object::GetObject,
-                  Object::At,
-                  Object::IsArray,
-                  NULL);
+  Options options;
+
+  options.getObject = Object::GetObject;
+  options.at = Object::At;
+  options.isArray = Object::IsArray;
+  options.arrayLength = Object::ArrayLength;
 
   Hogan hogan(&options);
 
@@ -28,11 +33,11 @@ TEST_START("Template output reallocation")
   Template* t;
   char* out;
 
-  t = hogan.Compile("{{#iterate}}string{{/iterate}}");
+  t = hogan.Compile("{{#iterate}} string {{/iterate}}");
 
   out = t->Render(&data);
   assert(out != NULL);
-  assert(strlen(out) == 6 * 10000);
+  assert(strlen(out) == 8 * 10000);
 
   delete t;
   delete out;

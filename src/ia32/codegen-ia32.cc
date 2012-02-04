@@ -109,7 +109,7 @@ void Codegen::GenerateProp(AstNode* node, bool escape) {
   }
 
   Label skipPush;
-  Cmp(eax, 0);
+  CmpImm(eax, 0);
   Je(&skipPush);
 
   {
@@ -159,7 +159,7 @@ void Codegen::GenerateIf(AstNode* node) {
   Label Start, Else, EndIf;
 
   // Check if object has that prop
-  Cmp(eax, 0);
+  CmpImm(eax, 0);
   Je(&Else);
 
   // Push property (needed to restore after iteration loop)
@@ -178,40 +178,61 @@ void Codegen::GenerateIf(AstNode* node) {
     AddImm(esp, delta);
   }
 
+  // Store reference to object into ecx
+  Pop(ecx);
+  Push(eax);
+
+  // Offset and length
+  PushImm(0);
   PushImm(0);
 
   // If not array - skip to if's body
-  Cmp(eax, 0);
+  CmpImm(eax, 0);
   Je(&Start);
 
+  // Get actual array length
+  {
+    IsArrayCallback method = options->arrayLength;
+
+    int delta = PreCall(8, 1);
+
+    Push(ecx); // array
+    Call(*reinterpret_cast<void**>(&method));
+
+    AddImm(esp, delta);
+  }
+
+  // Replace length
+  Pop(ecx);
+  Push(eax);
+
   // Start of loop
-  Label Iterate, EndIterate;
+  Label Iterate;
   Bind(&Iterate);
 
   // Get item at index
   {
     NumericPropertyCallback method = options->at;
 
+    Pop(edx);
     Pop(eax);
     Pop(ecx);
 
-    Mov(edx, eax);
     Inc(eax);
 
     Push(ecx);
     Push(eax);
+    Push(edx);
+
+    Dec(eax);
 
     int delta = PreCall(12, 2);
 
-    Push(edx); // index
+    Push(eax); // index
     Push(ecx); // obj
     Call(*reinterpret_cast<void**>(&method));
 
     AddImm(esp, delta);
-
-    // If At() returns NULL - we reached end of array
-    Cmp(eax, 0);
-    Je(&EndIterate);
 
     // Replace context var
     MovToContext(-8, eax);
@@ -223,17 +244,18 @@ void Codegen::GenerateIf(AstNode* node) {
   GenerateBlock(main_block);
   AddImm(esp, delta);
 
+  Pop(edx);
   Pop(eax);
-
   Pop(ecx);
 
   // Check if we reached end of loop
-  Cmp(eax, 0);
+  Cmp(eax, edx);
   Je(&EndIf);
 
-  // Store parent and loop index
+  // Store parent and loop index/length
   Push(ecx);
   Push(eax);
+  Push(edx);
 
   // And continue iterating
   Jmp(&Iterate);
@@ -242,11 +264,6 @@ void Codegen::GenerateIf(AstNode* node) {
 
   if (else_block != NULL) GenerateBlock(else_block);
   Jmp(&EndIf);
-
-  Bind(&EndIterate);
-
-  Pop(eax);
-  Pop(ecx);
 
   Bind(&EndIf);
 
@@ -273,7 +290,7 @@ void Codegen::GeneratePartial(AstNode* node) {
   }
 
   Label skipPush;
-  Cmp(eax, 0);
+  CmpImm(eax, 0);
   Je(&skipPush);
 
   // Invoke partial
